@@ -12,7 +12,12 @@
 - Get local restuarants menu through either web scraping or a particular api, and send order through there. (Location based off zip code)
 - Restaurants can add specific descriptions
 - Have unique user profiles to based off what they user likes and dislikes.
-- User and Restaurant login usages. 
+- User and Restaurant login usages.
+- Have a voice chat feature, where you are talking to a "personal food concierge".
+- '
+
+# Due by next meeting
+- 3 User stories per person. 
 
 ## Contribution Rules
 - Any edits made should be on new branch, main is left untouched until someone else tests it.
