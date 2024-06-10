@@ -4,7 +4,9 @@
 - Restaurant uploads menu
 - Our model _extracts_ menu items from pdf/png. (Use OCR to scan for characters, if language is Indic we can try use translators).
 - Create relational database based off menu items and have it relate items to food that it is trained on (Pinecone DB to use for RAG context usage)
-- Fine tune model to make sure exclusively give items from menus provided. 
+- Fine tune model to make sure exclusively give items from menus provided.
+
+- *Adding_Voice* Good to have
 
 ## Features-to-add
 - Check reviews of restaurant and understand reviews of items (what is good and bad)
