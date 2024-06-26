@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 import LoadingScreen from './screens/LoadingScreen';
-import WelcomePage from './screens/WelcomePage';
 import SurveyScreen from './screens/SurveyScreen';
 import HomeScreen from './screens/HomeScreen';
+import WelcomePage from './screens/WelcomePage';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,32 +32,42 @@ export default function App() {
         // Simulate a 4-second delay
         setTimeout(() => {
           setIsLoading(false);
-        }, 4000); // 4000 milliseconds = 4 seconds
+        }, 10000); // 4000 milliseconds = 4 seconds
       }
     }
     checkFirstLaunch();
-
-    
   }, []);
-  
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={isFirstLaunch ? 'WelcomePage' : 'HomeScreen'}
-        screenOptions={{
-          headerShown: false,
-          animation: 'none', // Disable animation globally
-        }}
-      >
-        <Stack.Screen name="WelcomePage" component={WelcomePage} />
-        <Stack.Screen name="Survey" component={SurveyScreen} />
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ImageBackground
+      source={require('./assets/background.png')} // Replace with your local image path
+      style={styles.backgroundImage}
+    >
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={isFirstLaunch ? 'WelcomePage' : 'HomeScreen'}
+          screenOptions={{
+            headerShown: false,
+            animation : 'none'
+          }}
+        >
+          <Stack.Screen name="WelcomePage" component={WelcomePage} />
+          <Stack.Screen name="Survey" component={SurveyScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
+  },
+});

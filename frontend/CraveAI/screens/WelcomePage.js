@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Button, FlatList, Dimensions, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const WelcomePage = () => {
@@ -28,7 +28,7 @@ const WelcomePage = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../assets/background.png')} style={styles.container}>
       <Text style={styles.title}>Welcome to</Text>
       <Text style={[styles.title, styles.subtitle]}>Crave AI</Text>
       <FlatList
@@ -55,9 +55,10 @@ const WelcomePage = () => {
         <Button
           title="Start Survey"
           onPress={handleNavigate}
+          color="#ffffff" // Button text color
         />
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -66,19 +67,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingTop: 80,
   },
   title: {
     fontSize: 44,
     fontWeight: 'bold',
-    marginTop: 55, 
+    marginTop: 55,
     fontFamily: 'Lexend',
+    color: '#ffffff', // Text color
   },
   subtitle: {
     marginTop: 20,
     fontSize: 44,
     fontFamily: 'Lexend',
+    color: '#ffffff', // Text color
   },
   carousel: {
     marginVertical: 20,
@@ -93,6 +95,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     fontFamily: 'Lexend',
+    color: '#ffffff', // Text color
   },
   pagination: {
     flexDirection: 'row',
@@ -104,6 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
     marginBottom: 50, // Adjusted margin to position the dots right under the info
+    backgroundColor: '#ffffff', // Dot color
   },
   buttonContainer: {
     marginBottom: 50, // Adjusted margin to raise the button higher
