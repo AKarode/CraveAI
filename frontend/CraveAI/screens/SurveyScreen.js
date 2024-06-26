@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Button } from 'react-native';
 
 export default function SurveyScreen({ navigation }) {
   const handleNavigate = () => {
-    navigation.navigate('HomeScreen');
+    navigation.replace('HomeScreen');
   };
 
   return (

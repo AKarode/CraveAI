@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import LoadingScreen from './screens/LoadingScreen';
+import WelcomePage from './screens/WelcomePage';
 import SurveyScreen from './screens/SurveyScreen';
 import HomeScreen from './screens/HomeScreen';
 
@@ -27,11 +28,17 @@ export default function App() {
         console.error('Error checking app launch status', error);
         setIsFirstLaunch(true); // Default to true if error occurs
       } finally {
-        setIsLoading(false);
+        // Simulate a 4-second delay
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 4000); // 4000 milliseconds = 4 seconds
       }
     }
     checkFirstLaunch();
+
+    
   }, []);
+  
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -39,15 +46,16 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isFirstLaunch ? (
-          <>
-            <Stack.Screen name="Survey" component={SurveyScreen} />
-            <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          </>
-        ) : (
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        )}
+      <Stack.Navigator
+        initialRouteName={isFirstLaunch ? 'WelcomePage' : 'HomeScreen'}
+        screenOptions={{
+          headerShown: false,
+          animation: 'none', // Disable animation globally
+        }}
+      >
+        <Stack.Screen name="WelcomePage" component={WelcomePage} />
+        <Stack.Screen name="Survey" component={SurveyScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
