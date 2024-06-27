@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 80,
+    backgroundColor: '#000000',
   },
   title: {
     fontSize: 44,
@@ -81,6 +82,15 @@ const styles = StyleSheet.create({
     fontSize: 44,
     fontFamily: 'Lexend',
     color: '#ffffff', // Text color
+  },
+  image: {
+    flex: 1,
+    resizeMode: 'cover',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   carousel: {
     marginVertical: 20,

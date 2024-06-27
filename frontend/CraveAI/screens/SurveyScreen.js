@@ -7,11 +7,13 @@ import backgroundImage from '../assets/background.png';
 
 export default function SurveyScreen({ navigation }) {
   const [answers, setAnswers] = useState({
-    question1: '',
-    question2: '',
-    question3: '',
-    question4: '',
-    question5: '',
+    question1: [],
+    question2: [],
+    question3: [],
+    question4: [],
+    question5: [],
+    question6: [],
+    question7: [],
   });
 
   const handleNavigate = () => {
@@ -19,65 +21,97 @@ export default function SurveyScreen({ navigation }) {
   };
 
   const handleAnswerChange = (question, answer) => {
-    setAnswers({ ...answers, [question]: answer });
+    // Toggle answer selection for the question
+    if (answers[question].includes(answer)) {
+      // Remove answer if already selected
+      setAnswers(prevAnswers => ({
+        ...prevAnswers,
+        [question]: prevAnswers[question].filter(item => item !== answer),
+      }));
+    } else {
+      // Add answer if not already selected
+      setAnswers(prevAnswers => ({
+        ...prevAnswers,
+        [question]: [...prevAnswers[question], answer],
+      }));
+    }
   };
 
-  const renderQuestion = (question, questionText) => (
+  const renderQuestion = (question, questionText, options) => (
     <View style={styles.questionContainer} key={question}>
       <Text style={styles.questionText}>{questionText}</Text>
-      <RadioButton.Group
-        onValueChange={(newValue) => handleAnswerChange(question, newValue)}
-        value={answers[question]}
-      >
-        <View style={styles.radioContainer}>
+      <View style={styles.radioContainer}>
+        {options.map((option) => (
           <TouchableOpacity
+            key={option.value}
             style={[
               styles.radioButton,
-              answers[question] === 'option1' && styles.radioButtonSelected,
+              answers[question].includes(option.value) && styles.radioButtonSelected,
             ]}
-            onPress={() => handleAnswerChange(question, 'option1')}
+            onPress={() => handleAnswerChange(question, option.value)}
           >
-            <RadioButton value="option1" />
-            <Text style={styles.radioText}>Option 1</Text>
+            <RadioButton.Android
+              value={option.value}
+              status={answers[question].includes(option.value) ? 'checked' : 'unchecked'}
+              color={'#000000'} // Change the color to match your theme
+            />
+            <Text style={styles.radioText}>{option.label}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.radioButton,
-              answers[question] === 'option2' && styles.radioButtonSelected,
-            ]}
-            onPress={() => handleAnswerChange(question, 'option2')}
-          >
-            <RadioButton value="option2" />
-            <Text style={styles.radioText}>Option 2</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.radioButton,
-              answers[question] === 'option3' && styles.radioButtonSelected,
-            ]}
-            onPress={() => handleAnswerChange(question, 'option3')}
-          >
-            <RadioButton value="option3" />
-            <Text style={styles.radioText}>Option 3</Text>
-          </TouchableOpacity>
-        </View>
-      </RadioButton.Group>
+        ))}
+      </View>
     </View>
   );
+
+  // Define your questions and options
+  const questions = [
+    { question: 'question1', questionText: 'Spicyness 🌶️', options: [
+      { value: 'option1', label: 'Low' },
+      { value: 'option2', label: 'Mild' },
+      { value: 'option3', label: 'Hot' },
+    ]},
+    { question: 'question2', questionText: 'Budget 💸', options: [
+      { value: 'option1', label: '$' },
+      { value: 'option2', label: '$$' },
+      { value: 'option3', label: '$$$' },
+    ]},
+    { question: 'question3', questionText: 'Favorite Cuisine 😋', options: [
+      { value: 'option1', label: 'Asian' },
+      { value: 'option2', label: 'Mexican' },
+      { value: 'option3', label: 'Italian' },
+    ]},
+    { question: 'question4', questionText: 'Dietary Preferences 📋', options: [
+      { value: 'option1', label: 'None' },
+      { value: 'option2', label: 'Gluten-Free' },
+      { value: 'option3', label: 'Vegetarian' },
+    ]},
+    { question: 'question5', questionText: 'Frequency of Exploring New Places 🌎', options: [
+      { value: 'option1', label: 'Rarely' },
+      { value: 'option2', label: 'Sometimes' },
+      { value: 'option3', label: 'Often' },
+    ]},
+    { question: 'question6', questionText: 'Preferred Cooking Style 👨‍🍳', options: [
+      { value: 'option1', label: 'Grilled' },
+      { value: 'option2', label: 'Fried' },
+      { value: 'option3', label: 'Steamed' },
+    ]},
+    { question: 'question7', questionText: 'Favorite Dessert 🎂', options: [
+      { value: 'option1', label: 'Chocolate' },
+      { value: 'option2', label: 'Fruit Based' },
+      { value: 'option3', label: 'Pastries' },
+    ]},
+  ];
 
   return (
     <ImageBackground source={backgroundImage} style={styles.background}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Survey Screen</Text>
-        {renderQuestion('question1', 'Question 1')}
-        {renderQuestion('question2', 'Question 2')}
-        {renderQuestion('question3', 'Question 3')}
-        {renderQuestion('question4', 'Question 4')}
-        {renderQuestion('question5', 'Question 5')}
+        <Text style={styles.title}>Getting Started</Text>
+        {questions.map(({ question, questionText, options }) =>
+          renderQuestion(question, questionText, options)
+        )}
         <Button
           title="Complete Survey"
           onPress={handleNavigate}
-          color="#ffffff" // Button text color
+          color="#ffffff"
         />
       </ScrollView>
     </ImageBackground>
@@ -97,44 +131,52 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#ffffff',
     marginTop: 40,
+    marginBottom: 50,
   },
   questionContainer: {
     marginBottom: 10,
     width: '80%',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   questionText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginTop: 40,
+    marginTop: 20,
+    textAlign: 'center',
+    marginBottom: 25,
   },
   radioContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column', 
+    alignItems: 'flex-start', 
     width: '100%',
+    alignItems: "center",
   },
   radioButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
-    backgroundColor: '#000000',
-    padding: 10,
-    borderRadius: 20,
-    flex: 1,
-    justifyContent: 'center',
-    marginHorizontal: 5,
+    marginBottom: 20,
+    backgroundColor: "#000000",
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingTop: 2,
+    paddingBottom: 2,
+    borderRadius: 10,
   },
   radioButtonSelected: {
-    backgroundColor: '#444444',
+    backgroundColor: '#9966CB',
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingTop: 2,
+    paddingBottom: 2,
+    borderRadius: 10,
   },
   radioText: {
     color: '#ffffff',
-    marginLeft: 10,
+    marginLeft: 8,
   },
 });
-
