@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ActivityIndicator } from 'react-native';
 import backgroundImage from '../assets/background.png';
 
 export default function LoadingScreen() {
@@ -7,6 +7,7 @@ export default function LoadingScreen() {
     <View style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.image}>
         <Text style={styles.text}>CraveAI</Text>
+        <ActivityIndicator size="large" color="#ffffff" style={styles.spinner} />
       </ImageBackground>
     </View>
   );
@@ -17,6 +18,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   image: {
     flex: 1,
@@ -25,10 +27,15 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color : "white"
+    color: 'white',
+    marginBottom: 20, // Add some space between the text and the spinner
+  },
+  spinner: {
+    marginTop: 20, // Add some space between the text and the spinner
   },
 });

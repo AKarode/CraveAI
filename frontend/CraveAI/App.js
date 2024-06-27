@@ -32,7 +32,7 @@ export default function App() {
         // Simulate a 4-second delay
         setTimeout(() => {
           setIsLoading(false);
-        }, 10000); // 4000 milliseconds = 4 seconds
+        }, 2000); // 4000 milliseconds = 4 seconds
       }
     }
     checkFirstLaunch();
