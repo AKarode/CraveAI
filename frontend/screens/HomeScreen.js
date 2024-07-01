@@ -1,14 +1,21 @@
-import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import backgroundImage from '../assets/background.png';
-import middleImage from '../assets/food.jpg'; // Replace this with your actual image
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import backgroundImage from "../assets/background.png";
+import middleImage from "../assets/food.jpg"; // Replace this with your actual image
 
 export default function HomeScreen() {
   const navigation = useNavigation();
 
   const navigateToChat = () => {
-    navigation.navigate('ChatScreen');
+    navigation.navigate("ChatScreen");
   };
 
   return (
@@ -31,29 +38,29 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000000',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000000",
   },
   image: {
     flex: 1,
-    resizeMode: 'cover',
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000000',
+    resizeMode: "cover",
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000000",
   },
   title: {
     fontSize: 48,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
     marginTop: 80,
   },
   middleContainer: {
     flex: 1,
     marginTop: 90,
-    alignItems: 'center', // Center items horizontally
+    alignItems: "center", // Center items horizontally
   },
   middleImage: {
     width: 400,
@@ -61,18 +68,17 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginBottom: 50, // Adjust as needed for spacing
-    alignItems: 'center', // Center button horizontally
+    alignItems: "center", // Center button horizontally
   },
   button: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     paddingVertical: 10,
     paddingHorizontal: 40,
     borderRadius: 20,
   },
   buttonText: {
     fontSize: 24,
-    color: 'black',
-    fontWeight: 'bold',
+    color: "black",
+    fontWeight: "bold",
   },
 });
-
