@@ -53,13 +53,15 @@ const styles = StyleSheet.create({
   middleContainer: {
     flex: 1,
     marginTop: 90,
+    alignItems: 'center', // Center items horizontally
   },
   middleImage: {
     width: 400,
     height: 250,
   },
   buttonContainer: {
-    marginBottom: 250,
+    marginBottom: 50, // Adjust as needed for spacing
+    alignItems: 'center', // Center button horizontally
   },
   button: {
     backgroundColor: '#FFFFFF',
@@ -73,3 +75,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
