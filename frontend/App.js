@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 
-import LoadingScreen from './screens/LoadingScreen';
-import SurveyScreen from './screens/SurveyScreen';
-import HomeScreen from './screens/HomeScreen';
-import WelcomePage from './screens/WelcomePage';
-import ChatScreen from './screens/ChatScreen';
+import LoadingScreen from "./screens/LoadingScreen";
+import SurveyScreen from "./screens/SurveyScreen";
+import HomeScreen from "./screens/HomeScreen";
+import WelcomePage from "./screens/WelcomePage";
+import ChatScreen from "./screens/ChatScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,22 +18,24 @@ export default function App() {
 
   useEffect(() => {
     async function checkFirstLaunch() {
+      // Function to check if the app has launched before
       try {
-        const value = await AsyncStorage.getItem('hasLaunched');
+        const value = await AsyncStorage.getItem("hasLaunched");
         if (value === null) {
-          await AsyncStorage.setItem('hasLaunched', 'true');
+          // If it is first launch then survey is given
+          await AsyncStorage.setItem("hasLaunched", "true");
           setIsFirstLaunch(true);
         } else {
           setIsFirstLaunch(false);
         }
       } catch (error) {
-        console.error('Error checking app launch status', error);
+        console.error("Error checking app launch status", error);
         setIsFirstLaunch(true); // Default to true if error occurs
       } finally {
-        // Simulate a 4-second delay
+        // Simulate a 2-second delay
         setTimeout(() => {
           setIsLoading(false);
-        }, 2000); // 4000 milliseconds = 4 seconds
+        }, 2000); // 2000 milliseconds = 2 seconds
       }
     }
     checkFirstLaunch();
@@ -45,15 +47,15 @@ export default function App() {
 
   return (
     <ImageBackground
-      source={require('./assets/background.png')} // Replace with your local image path
+      source={require("./assets/background.png")} // Replace with your local image path
       style={styles.backgroundImage}
     >
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName={isFirstLaunch ? 'WelcomePage' : 'HomeScreen'}
+          initialRouteName={isFirstLaunch ? "WelcomePage" : "HomeScreen"}
           screenOptions={{
             headerShown: false,
-            animation : 'none'
+            animation: "none",
           }}
         >
           <Stack.Screen name="WelcomePage" component={WelcomePage} />
@@ -69,7 +71,7 @@ export default function App() {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
+    resizeMode: "cover",
+    justifyContent: "center",
   },
 });
