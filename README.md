@@ -21,10 +21,5 @@
 - User and Restaurant login usages.
 - Have a voice chat feature, where you are talking to a "personal food concierge".
 
-## How to Use the App
-- git clone
-- npm install --legacy-peer-deps
-- npm run ios
-
 ## Contribution Rules
 - Any edits made should be on new branch, main is left untouched until someone else tests it.
