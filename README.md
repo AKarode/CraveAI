@@ -1,5 +1,9 @@
 # gmg-food-assistant
 (Tech Stacks Used)
+- ReactJS
+- PineconeDB
+- OpenAI API
+
 ## Version-1
 - Restaurant uploads menu
 - Our model _extracts_ menu items from pdf/png. (Use OCR to scan for characters, if language is Indic we can try use translators).
