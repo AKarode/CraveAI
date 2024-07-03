@@ -8,7 +8,21 @@
 
 ## Model Installation 
 ```bash
+git clone
+```
+```bash
 pip install openai
+```
+
+## Frontend Installation
+```bash
+git clone
+```
+```bash
+npm install --legacy-peer-deps
+```
+```bash
+npm run ios
 ```
 
 ## Contribution Rules
