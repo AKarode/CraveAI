@@ -1,5 +1,9 @@
 # gmg-food-assistant
 (Tech Stacks Used)
+- ReactJS
+- PineconeDB
+- OpenAI API
+
 ## Version-1
 - Restaurant uploads menu
 - Our model _extracts_ menu items from pdf/png. (Use OCR to scan for characters, if language is Indic we can try use translators).
@@ -16,10 +20,11 @@
 - Have unique user profiles to based off what they user likes and dislikes.
 - User and Restaurant login usages.
 - Have a voice chat feature, where you are talking to a "personal food concierge".
-- '
 
-# Due by next meeting
-- 3 User stories per person. 
+## How to Use the App
+- git clone
+- npm install --legacy-peer-deps
+- npm run ios
 
 ## Contribution Rules
 - Any edits made should be on new branch, main is left untouched until someone else tests it.

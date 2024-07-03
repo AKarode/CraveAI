@@ -9,6 +9,7 @@ import SurveyScreen from "./screens/SurveyScreen";
 import HomeScreen from "./screens/HomeScreen";
 import WelcomePage from "./screens/WelcomePage";
 import ChatScreen from "./screens/ChatScreen";
+import ScanScreen from "./screens/ScanScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -62,6 +63,7 @@ export default function App() {
           <Stack.Screen name="Survey" component={SurveyScreen} />
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="ScanScreen" component={ScanScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ImageBackground>
