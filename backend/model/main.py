@@ -21,7 +21,7 @@ response = client.chat.completions.create(
       ],
     }
   ],
-  max_tokens=300,
+  max_tokens=400,
 )
 
 # Print the full response to understand its structure

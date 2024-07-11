@@ -1,15 +1,10 @@
 Item,Price
-Milk,$0.99
-Coffee,$1.35
-Soft Drink (Small),$1.65
-French Fries,$1.85
-Soft Drink (Medium),$1.80
-Soft Drink (Large),$2.00
-Soft Drink (Extra Large),$2.20
-Hamburger,$2.50
-Shakes,$2.50
-Cheeseburger,$2.80
-Double-Double Burger,$3.95
-Hamburger Combo,$7.20
-Cheeseburger Combo,$7.55
-Double-Double Burger Combo,$9.00
+MILK,$0.99
+COFFEE,$1.35
+SMALL SOFT DRINK,$1.65
+FRENCH FRIES,$1.85
+MEDIUM SOFT DRINK,$1.80
+LARGE SOFT DRINK,$2.00
+EXTRA LARGE SOFT DRINK,$2.20
+HAMBURGER,$2.50
+SHAKES,$2
