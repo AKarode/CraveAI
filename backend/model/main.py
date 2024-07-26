@@ -1,36 +1,33 @@
 from flask import Flask, request, jsonify
-from openai import OpenAI
+import openai
 
 app = Flask(__name__)
-client = OpenAI(api_key="your_openai_api_key")
+openai.api_key = "sk-proj-ju4sZRdIg9raP2wUggocT3BlbkFJkaMG9ovDeW6Bo03U33iB"
 
 @app.route('/process_menu', methods=['POST'])
 def process_menu():
-    data = request.json
-    messages = [
-        {
-            "role": "user",
-            "content": data['text']
-        },
-        {
-            "type": "image_url",
-            "image_url": {
-                "url": data['image_url']
-            }
-        },
-    ]
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=messages,
-        max_tokens=400,
-    )
+    try:
+        data = request.json
+        print('Received data:', data)  # Log received data for debugging
 
-    menu_text = response.choices[0].message.content
-    lines = menu_text.split('\n')
+        messages = [
+            {"role": "user", "content": data['text']},
+            {"role": "user", "content": data['image_url']},
+        ]
 
-    sorted_menu = [{"item": line.rsplit(' ', 1)[0], "price": line.rsplit(' ', 1)[1]} for line in lines if line]
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            max_tokens=400,
+        )
 
-    return jsonify(sorted_menu)
+        menu_text = response.choices[0].message.content
+        lines = menu_text.split('\n')
+
+        return jsonify({"reply": lines})
+    except Exception as e:
+        print('Error processing menu:', e)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
