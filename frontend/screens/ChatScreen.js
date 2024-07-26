@@ -140,10 +140,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingBottom: 20,
-    marginBottom: 30,
-    height: 40, // Increased height for the input container
+    marginBottom: 10, // Adjust this value to move the input box higher
+    height: 60, // Increased height for the input container
   },
   input: {
     flex: 1,
