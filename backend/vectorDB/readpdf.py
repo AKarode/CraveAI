@@ -4,6 +4,10 @@ from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone, Index, ServerlessSpec, PineconeProtocolError
 import os
 import unicodedata
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Helper function to make strings ASCII-safe
 def ascii_safe_string(text):
@@ -82,9 +86,9 @@ def vectorize_items(menu_items, model):
 def upload_vectors_to_pinecone(vectors, index_name, api_key, environment):
     try:
         # Initialize Pinecone
+        print(f"Initializing Pinecone with API key: {api_key}")
         pc = Pinecone(api_key=api_key)
-        index = pc.Index(index_name)
-
+        
         # Ensure the index exists or create it
         if index_name not in [index.name for index in pc.list_indexes()]:
             pc.create_index(
@@ -96,32 +100,46 @@ def upload_vectors_to_pinecone(vectors, index_name, api_key, environment):
                     region="us-east-1"
                 )
             )
+            print(f"Created index: {index_name}")
 
         # Retrieve the host URL for the index
         index_description = pc.describe_index(index_name)
         host = index_description.host
-
+        
         # Access the index
         index = Index(index_name, host=host)
+        print("Reached")
+
+        # Print debug info for vectors
+        for vector in vectors:
+            print(f"Uploading vector ID: {vector['id']}, Metadata: {vector['metadata']}")
 
         # Upsert vectors with error handling for reinitialization
         try:
             index.upsert(vectors)
             print("Vectors uploaded successfully!")
-        except PineconeProtocolError:
+        except PineconeProtocolError as e:
+            print(f"Pinecone Protocol Error: {e}")
             print("Encountered a connection issue. Reinitializing Pinecone client.")
             pc = Pinecone(api_key=api_key, environment=environment)
             index = Index(index_name, host=host)
             index.upsert(vectors)
             print("Vectors re-uploaded successfully after reinitialization.")
+        except Exception as e:
+            print(f"An error occurred during upsert: {e}")
 
     except Exception as e:
         print(f"An error occurred while uploading vectors to Pinecone: {e}")
 
 # Main execution
 def main():
-    # Replace with your Pinecone API key and environment
-    api_key = "5e726cf8-5d0d-456c-addf-cc6b5569ea47"  # Replace with your actual API key
+    # Retrieve Pinecone API key from environment variable
+    api_key = os.getenv("PINECONE_API_KEY")
+    print(f"Using API key: {api_key}")  # Add this line to verify the key
+    if not api_key:
+        print("Pinecone API key not found in environment variables.")
+        return
+
     environment = "us-east-1"
     index_name = "unique-food-recommendations"
 
@@ -149,3 +167,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
