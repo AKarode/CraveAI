@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,15 +7,62 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import backgroundImage from "../assets/background.png";
-import middleImage from "../assets/food.jpg"; // Replace this with your actual image
 
 const { width, height } = Dimensions.get("window");
 
+const UNSPLASH_ACCESS_KEY = "W0miEWOlMyBWF-aeaU4QmSRPLL8lj2Ist_ONNvI97eo"; // Replace with your Unsplash Access Key
+
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [middleImage, setMiddleImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const response = await axios.get("https://api.unsplash.com/photos/random", {
+          headers: {
+            Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+          },
+          params: {
+            query: "restaurant dish",
+            orientation: "landscape",
+          },
+        });
+        const imageUrl = response.data.urls.regular;
+        await AsyncStorage.setItem("middleImage", imageUrl);
+        await AsyncStorage.setItem("lastFetchedDate", new Date().toISOString().split("T")[0]);
+        setMiddleImage(imageUrl);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching image:", error);
+        setLoading(false);
+      }
+    };
+
+    const checkAndFetchImage = async () => {
+      const lastFetchedDate = await AsyncStorage.getItem("lastFetchedDate");
+      const middleImage = await AsyncStorage.getItem("middleImage");
+      const currentDate = new Date().toISOString().split("T")[0];
+
+      if (lastFetchedDate === currentDate && middleImage) {
+        setMiddleImage(middleImage);
+        setLoading(false);
+      } else {
+        fetchImage();
+      }
+    };
+
+    checkAndFetchImage();
+  }, []);
 
   const navigateToChat = () => {
     navigation.navigate("ChatScreen");
@@ -26,31 +73,37 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#ff7e5f', '#feb47b']}
+      style={styles.container}
+    >
       <ImageBackground source={backgroundImage} style={styles.image}>
         <Text style={styles.title}>CraveAI</Text>
         <View style={styles.middleContainer}>
-          <Image source={middleImage} style={styles.middleImage} />
+          {loading ? (
+            <ActivityIndicator size="large" color="#FFFFFF" />
+          ) : (
+            <Image source={{ uri: middleImage }} style={styles.middleImage} />
+          )}
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={navigateToChat}>
-            <Text style={styles.buttonText}>CHATBOT</Text>
+            <Ionicons name="chatbubbles" size={24} color="white" />
+            <Text style={styles.buttonText}>Chatbot</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={navigateToScan}>
-            <Text style={styles.buttonText}>SCAN MENU</Text>
+            <Ionicons name="scan" size={24} color="white" />
+            <Text style={styles.buttonText}>Scan Menu</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000000",
   },
   image: {
     flex: 1,
@@ -59,40 +112,43 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000000",
   },
   title: {
-    fontSize: width * 0.12, // Relative font size
+    fontSize: 48,
     fontWeight: "bold",
     color: "white",
-    marginTop: height * 0.1, // Relative margin
+    marginTop: height * 0.1,
     textAlign: "center",
   },
   middleContainer: {
     flex: 1,
     marginTop: height * 0.05,
-    alignItems: "center", // Center items horizontally
+    alignItems: "center",
   },
   middleImage: {
-    width: width * 0.90, // Relative width
-    height: height * 0.26, // Relative height
+    width: width * 0.90,
+    height: height * 0.40,
     borderRadius: 15,
   },
   buttonContainer: {
-    flexDirection: "column",
-    marginBottom: height * 0.08, // Adjust as needed for spacing
-    alignItems: "center", // Center button horizontally
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginBottom: height * 0.08,
   },
   button: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: height * 0.015, // Relative padding
-    paddingHorizontal: width * 0.1, // Relative padding
-    borderRadius: 15,
-    marginVertical: width * 0.05, // Add horizontal margin to space out buttons
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ff7e5f",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginHorizontal: 10,
   },
   buttonText: {
-    fontSize: width * 0.06,
-    color: "black",
+    fontSize: 18,
+    color: "white",
     fontWeight: "bold",
+    marginLeft: 10,
   },
 });
