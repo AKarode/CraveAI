@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import openai
 
 app = Flask(__name__)
-openai.api_key = "sk-proj-ju4sZRdIg9raP2wUggocT3BlbkFJkaMG9ovDeW6Bo03U33iB"
+openai.api_key = "key"
 
 @app.route('/process_menu', methods=['POST'])
 def process_menu():
