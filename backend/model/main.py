@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import openai
 
 app = Flask(__name__)
-openai.api_key = "key"
+
 
 @app.route('/process_menu', methods=['POST'])
 def process_menu():
@@ -18,8 +18,7 @@ def process_menu():
         response = openai.chat.completions.create(
             model="gpt-4",
             messages=messages,
-            max_tokens=400,
-        )
+            max_tokens=400,        )
 
         menu_text = response.choices[0].message.content
         lines = menu_text.split('\n')
