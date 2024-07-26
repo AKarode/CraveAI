@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 import re
 from sentence_transformers import SentenceTransformer
-from pinecone import Pinecone, Index, ServerlessSpec, PineconeProtocolError
+from pinecone import Pinecone, ServerlessSpec
 import os
 import unicodedata
 from dotenv import load_dotenv
@@ -55,7 +55,7 @@ def vectorize_items(menu_items, model):
     vectors = []
     for item in menu_items:
         combined_text = f"{item['name']} {item['description']}"
-        vector = model.encode(combined_text)
+        vector = model.encode(combined_text).tolist()
         
         # Convert name to ASCII-safe format for ID
         safe_id = ascii_safe_string(item['name'])
@@ -73,7 +73,7 @@ def vectorize_items(menu_items, model):
 
         vectors.append({
             "id": safe_id,
-            "values": vector.tolist(),
+            "values": vector,
             "metadata": {
                 "name": safe_name,
                 "description": safe_description,
@@ -82,66 +82,44 @@ def vectorize_items(menu_items, model):
         })
     return vectors
 
-# Upload vectors to Pinecone with error handling
-def upload_vectors_to_pinecone(vectors, index_name, api_key, environment):
+# Upload vectors to Pinecone
+def upload_vectors_to_pinecone(vectors, index):
     try:
-        # Initialize Pinecone
-        print(f"Initializing Pinecone with API key: {api_key}")
-        pc = Pinecone(api_key=api_key)
-        
-        # Ensure the index exists or create it
-        if index_name not in [index.name for index in pc.list_indexes()]:
-            pc.create_index(
-                name=index_name,
-                dimension=384,  # Make sure this matches your vector dimensions
-                metric='cosine',  # Example metric, can be changed
-                spec=ServerlessSpec(
-                    cloud='aws',
-                    region="us-east-1"
-                )
-            )
-            print(f"Created index: {index_name}")
-
-        # Retrieve the host URL for the index
-        index_description = pc.describe_index(index_name)
-        host = index_description.host
-        
-        # Access the index
-        index = Index(index_name, host=host)
-        print("Reached")
-
         # Print debug info for vectors
         for vector in vectors:
             print(f"Uploading vector ID: {vector['id']}, Metadata: {vector['metadata']}")
 
-        # Upsert vectors with error handling for reinitialization
-        try:
-            index.upsert(vectors)
-            print("Vectors uploaded successfully!")
-        except PineconeProtocolError as e:
-            print(f"Pinecone Protocol Error: {e}")
-            print("Encountered a connection issue. Reinitializing Pinecone client.")
-            pc = Pinecone(api_key=api_key, environment=environment)
-            index = Index(index_name, host=host)
-            index.upsert(vectors)
-            print("Vectors re-uploaded successfully after reinitialization.")
-        except Exception as e:
-            print(f"An error occurred during upsert: {e}")
-
+        # Upsert vectors
+        index.upsert(vectors=vectors)
+        print("Vectors uploaded successfully!")
     except Exception as e:
-        print(f"An error occurred while uploading vectors to Pinecone: {e}")
+        print(f"An error occurred during upsert: {e}")
 
 # Main execution
 def main():
     # Retrieve Pinecone API key from environment variable
     api_key = os.getenv("PINECONE_API_KEY")
-    print(f"Using API key: {api_key}")  # Add this line to verify the key
+    print(f"Using API key: {api_key}")  # Verify the key
     if not api_key:
         print("Pinecone API key not found in environment variables.")
         return
 
-    environment = "us-east-1"
+    # Initialize Pinecone
+    pc = Pinecone(api_key=api_key)
     index_name = "unique-food-recommendations"
+
+    # Create or connect to the index
+    if index_name not in [index.name for index in pc.list_indexes()]:
+        pc.create_index(
+            name=index_name, 
+            dimension=384,  # Make sure this matches your vector dimensions
+            metric='cosine',  # Example metric, can be changed
+            spec=ServerlessSpec(
+                cloud='aws',
+                region="us-east-1"
+            )
+        )
+    index = pc.Index(index_name)
 
     # Model for vectorization
     model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -163,8 +141,7 @@ def main():
     vectors = vectorize_items(menu_items, model)
 
     # Upload vectors to Pinecone
-    upload_vectors_to_pinecone(vectors, index_name, api_key, environment)
+    upload_vectors_to_pinecone(vectors, index)
 
 if __name__ == "__main__":
     main()
-
