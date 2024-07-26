@@ -128,8 +128,12 @@ def main():
     # Model for vectorization
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    # Path to the PDF
-    pdf_path = '/Users/saahithkalakuntla/Desktop/indian_resturant.pdf'
+    # Determine the script's directory and set it as the current working directory
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(script_dir)
+
+    # Relative path to the PDF
+    pdf_path = "Indian_Menu.pdf"
 
     if not os.path.exists(pdf_path):
         print(f"File not found: {pdf_path}")
