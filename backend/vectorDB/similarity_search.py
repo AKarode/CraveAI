@@ -27,8 +27,8 @@ def compute_similarity(vector1, vector2):
     """Compute the cosine similarity between two vectors."""
     return 1 - cosine(vector1, vector2)
 
-def find_best_matching_item(user_id, recent_query):
-    """Find the best matching restaurant item for a user based on their palette vector and a recent query."""
+def find_top_matching_items(user_id, recent_query, top_k=3):
+    """Find the top matching restaurant items for a user based on their palette vector and a recent query."""
     # Fetch the original palette vector
     original_vector = palette_index.fetch(ids=[user_id])['vectors'][user_id]
     original_values = np.array(original_vector['values'])
@@ -52,16 +52,18 @@ def find_best_matching_item(user_id, recent_query):
         similarity = compute_similarity(combined_vector, item_values)
         similarities.append((item_id, similarity, item_metadata))
 
-    # Find the item with the highest similarity score
-    best_match = max(similarities, key=lambda x: x[1])
-    return best_match
+    # Sort by similarity and get the top K results
+    similarities.sort(key=lambda x: x[1], reverse=True)
+    top_matches = similarities[:top_k]
+    return top_matches
 
 # Example usage:
 if __name__ == "__main__":
     user_id = "user_123"
-    recent_query = "I feel like eating some delicious chicken"
-    best_item = find_best_matching_item(user_id, recent_query)
+    recent_query = "Give me a paneer item"
+    top_items = find_top_matching_items(user_id, recent_query, top_k=3)
 
-    print(f"Best matching item ID: {best_item[0]}")
-    print(f"Similarity: {best_item[1]}")
-    print(f"Metadata: {best_item[2]}")
+    for i, item in enumerate(top_items, start=1):
+        print(f"Top {i} matching item ID: {item[0]}")
+        print(f"Similarity: {item[1]}")
+        print(f"Metadata: {item[2]}")
