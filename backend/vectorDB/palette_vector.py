@@ -1,12 +1,17 @@
 import pinecone
 import numpy as np
 from sentence_transformers import SentenceTransformer
-
+from dotenv import load_dotenv
+import os
 # Initialize the Sentence-BERT model
 text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
+#Load Environment Variables
+load_dotenv()
+
+
 # Initialize Pinecone
-api_key = '5e726cf8-5d0d-456c-addf-cc6b5569ea47'
+api_key = os.getenv("PINECONE_API_KEY")
 pc = pinecone.Pinecone(api_key=api_key)
 
 # Create or connect to the index
