@@ -129,7 +129,7 @@ def main():
     os.chdir(script_dir)
 
     # Relative path to the PDF
-    pdf_path = "Indian_Menu.pdf"
+    pdf_path = "new_menu.pdf"
 
     if not os.path.exists(pdf_path):
         print(f"File not found: {pdf_path}")

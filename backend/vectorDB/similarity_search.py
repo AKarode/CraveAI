@@ -59,8 +59,8 @@ def find_top_matching_items(user_id, recent_query, top_k=3):
 
 # Example usage:
 if __name__ == "__main__":
-    user_id = "user_123"
-    recent_query = "Give me a paneer item"
+    user_id = "user_124"
+    recent_query = "I want sweet"
     top_items = find_top_matching_items(user_id, recent_query, top_k=3)
 
     for i, item in enumerate(top_items, start=1):

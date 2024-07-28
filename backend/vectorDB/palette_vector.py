@@ -83,14 +83,14 @@ def update_palette_vector(user_id, new_sentence):
     index.upsert(vectors=[updated_palette_vector])
 
 # Example usage:
-survey_data = {"sentence": "This is a summary of the survey data."}
-user_id = "user_123"
+survey_data = {"sentence": "I hate chickpeas."}
+user_id = "user_124"
 
 # Initialize the palette vector
 initialize_palette_vector(user_id, survey_data)
 
 # Update the palette vector with a new statement
-new_statement = "This is the user's most recent statement."
+new_statement = "I like sweets."
 update_palette_vector(user_id, new_statement)
 
 # Fetch and print the updated vector to verify
