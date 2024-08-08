@@ -8,8 +8,6 @@ from similarity_search import find_top_matching_items
 
 app = Flask(__name__)
 
-openai.api_key = "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"
-
 @app.route('/process_menu', methods=['POST'])
 def process_menu():
     try:
