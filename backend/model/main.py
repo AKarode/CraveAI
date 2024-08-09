@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
 import openai
 import sys,os
+from dotenv import load_dotenv
+load_dotenv()
 ##from backend.vectorDB.similaritysearch import findtopmatchingitems
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'vectorDB')))
 
 from similarity_search import find_top_matching_items
 
+openai.api_key = os.getenv("OPENAI_API_KEY")
 app = Flask(__name__)
 
 @app.route('/process_menu', methods=['POST'])
