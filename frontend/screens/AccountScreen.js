@@ -8,9 +8,9 @@ import {
 } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
-
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+
 export default function AccountScreen() {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
@@ -47,8 +47,15 @@ export default function AccountScreen() {
       <Text style={styles.info}>{user.uid}</Text>
       <Text style={styles.label}>Account Created:</Text>
       <Text style={styles.info}>{user.metadata.creationTime}</Text>
+      
+      {/* Logout Button */}
       <TouchableOpacity onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+
+      {/* Navigate to Reset Password Screen */}
+      <TouchableOpacity onPress={() => navigation.navigate('ResetPasswordScreen')}>
+        <Text style={styles.resetPasswordText}>Reset Password</Text>
       </TouchableOpacity>
     </View>
   );
@@ -64,6 +71,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
   },
   label: {
     fontSize: 18,
@@ -78,6 +86,13 @@ const styles = StyleSheet.create({
     color: 'maroon',
     marginTop: 20,
     textAlign: 'center',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+  },
+  resetPasswordText: {
+    fontSize: 18,
+    color: 'maroon',
+    marginTop: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });

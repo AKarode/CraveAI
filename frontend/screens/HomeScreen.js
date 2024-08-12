@@ -5,24 +5,26 @@ import {
   StyleSheet,
   ImageBackground,
   Image,
-  TouchableOpacity,
-  Dimensions,
+  ScrollView,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import backgroundImage from "../assets/background.png";
 
 const { width, height } = Dimensions.get("window");
 
 const UNSPLASH_ACCESS_KEY = "W0miEWOlMyBWF-aeaU4QmSRPLL8lj2Ist_ONNvI97eo"; // Replace with your Unsplash Access Key
+const GOOGLE_PLACES_API_KEY = "AIzaSyCxxb2za84ZBpzKp-2KXju2udPW2iRNVOk"; // Replace with your Google Places API Key
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
   const [middleImage, setMiddleImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState([]);
+  const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
     const fetchImage = async () => {
@@ -60,8 +62,52 @@ export default function HomeScreen() {
       }
     };
 
+    const fetchRestaurants = async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationError('Permission to access location was denied');
+          setLoading(false);
+          return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+
+        const response = await axios.get(
+          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=restaurant&key=${GOOGLE_PLACES_API_KEY}`
+        );
+
+        setRestaurants(response.data.results.slice(0, 10));
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+      }
+    };
+
     checkAndFetchImage();
+    fetchRestaurants();
   }, []);
+
+  const renderRestaurant = (item) => (
+    <View key={item.place_id} style={styles.restaurantContainer}>
+      {item.photos && item.photos.length > 0 ? (
+        <Image
+          source={{ uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=100&photoreference=${item.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}` }}
+          style={styles.restaurantImage}
+        />
+      ) : (
+        <View style={styles.noImageContainer}>
+          <Text style={styles.noImageText}>No Image</Text>
+        </View>
+      )}
+      <View style={styles.restaurantInfo}>
+        <Text style={styles.restaurantName}>{item.name}</Text>
+        <Text style={styles.restaurantAddress}>{item.vicinity}</Text>
+        <Text style={styles.restaurantRating}>Rating: {item.rating || 'N/A'}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <LinearGradient
@@ -69,15 +115,25 @@ export default function HomeScreen() {
       style={styles.container}
     >
       <ImageBackground source={backgroundImage} style={styles.image}>
-        <Text style={styles.title}>CraveAI</Text>
-        <View style={styles.middleContainer}>
-          {loading ? (
-            <ActivityIndicator size="large" color="#FFFFFF" />
-          ) : (
-            <Image source={{ uri: middleImage }} style={styles.middleImage} />
-          )}
-        </View>
-        {/* The button container has been removed */}
+        <ScrollView contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>CraveAI</Text>
+          <View style={styles.middleContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#FFFFFF" />
+            ) : (
+              <Image source={{ uri: middleImage }} style={styles.middleImage} />
+            )}
+          </View>
+          <View style={styles.restaurantListContainer}>
+            <Text style={styles.sectionTitle}>Top Restaurants Nearby</Text>
+            {locationError ? (
+              <Text style={styles.errorText}>{locationError}</Text>
+            ) : (
+              restaurants.map(renderRestaurant)
+            )}
+          </View>
+        </ScrollView>
       </ImageBackground>
     </LinearGradient>
   );
@@ -95,6 +151,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  scrollViewContent: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingRight: 0, // Adjust to move scroll indicator to the right
+  },
   title: {
     fontSize: 48,
     fontWeight: "bold",
@@ -103,15 +164,71 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   middleContainer: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "center", // Center the image container vertically
-    paddingVertical: height * 0.05, // Adjust top and bottom spacing here
+    justifyContent: "center",
+    paddingVertical: height * 0.05,
   },
   middleImage: {
-    width: width * 0.90,
-    height: height * 0.40,
+    width: width * 0.8,
+    height: height * 0.3,
     borderRadius: 15,
-    marginVertical: 45, // Adjust vertical positioning here
+    marginVertical: 45,
+  },
+  restaurantListContainer: {
+    width: '100%', // Make the container wider
+    paddingVertical: 0,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'maroon',
+    marginBottom: 10,
+  },
+  restaurantContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'maroon'
+  },
+  restaurantImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  noImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  noImageText: {
+    color: '#666',
+  },
+  restaurantInfo: {
+    flex: 1,
+  },
+  restaurantName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  restaurantAddress: {
+    fontSize: 14,
+    color: 'black',
+    marginTop: 5,
+  },
+  restaurantRating: {
+    fontSize: 14,
+    color: 'teal',
+    marginTop: 5,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
   },
 });
