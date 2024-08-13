@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, FlatList, Dimensions, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+
 const WelcomePage = () => {
   const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
