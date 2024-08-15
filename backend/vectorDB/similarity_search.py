@@ -8,7 +8,7 @@ import os
 # Load environment variables
 load_dotenv()
 
-api_key = "f159a7eb-8aea-45fd-b944-e554acf82bbe"
+api_key = os.getenv("PINECONE_API_KEY")
 
 # Initialize the Sentence-BERT model
 text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
