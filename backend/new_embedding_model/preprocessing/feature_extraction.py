@@ -6,7 +6,7 @@ class FeatureExtractor:
         Initializes the FeatureExtractor with optional scaling.
         
         Args:
-            scaling (bool): Whether to scale the features to unit length.
+            scaling (bool): Whether to scale the features to sum to 1.0.
         """
         self.scaling = scaling
 
@@ -31,7 +31,7 @@ class FeatureExtractor:
 
     def scale_features(self, features):
         """
-        Scales the feature vector to have unit norm.
+        Scales the feature vector so that it sums to 1.0.
         
         Args:
             features (numpy.ndarray): The feature vector to scale.
@@ -39,8 +39,8 @@ class FeatureExtractor:
         Returns:
             numpy.ndarray: The scaled feature vector.
         """
-        # Perform simple normalization (scaling) of the feature vector
-        norm = np.linalg.norm(features)
-        if norm == 0:
+        # Normalize the features to sum to 1.0
+        sum_features = np.sum(features)
+        if sum_features == 0:
             return features  # Avoid division by zero; return original features
-        return features / norm
+        return features / sum_features

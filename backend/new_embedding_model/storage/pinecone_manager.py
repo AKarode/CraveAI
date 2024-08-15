@@ -1,4 +1,4 @@
-import pinecone
+from pinecone import Pinecone, ServerlessSpec
 
 class PineconeManager:
     def __init__(self, api_key, index_name, dimension):
@@ -10,22 +10,39 @@ class PineconeManager:
             index_name (str): The name of the index to create or use in Pinecone.
             dimension (int): The dimension of the vectors to be stored in Pinecone.
         """
-        pinecone.init(api_key=api_key)
+        # Initialize the Pinecone client
+        self.pc = Pinecone(api_key=api_key)
         self.index_name = index_name
+
+        # Create the index if it doesn't exist
+        if self.index_name not in self.pc.list_indexes().names():
+            self.pc.create_index(
+                name=self.index_name,
+                dimension=dimension,
+                metric='cosine',  # or 'euclidean', depending on your needs
+                spec=ServerlessSpec(
+                    cloud='aws',
+                    region='us-east-1'  # Replace with your preferred region
+                )
+            )
         
-        if self.index_name not in pinecone.list_indexes():
-            pinecone.create_index(self.index_name, dimension=dimension, metric='cosine')
-        
-        self.index = pinecone.Index(self.index_name)
+        # Connect to the index
+        self.index = self.pc.Index(self.index_name)
     
     def upsert_vectors(self, vectors):
-        """
-        Upserts (inserts or updates) vectors into the Pinecone index.
-        
-        Args:
-            vectors (list of tuples): A list of tuples where each tuple contains an ID and a vector.
-        """
-        self.index.upsert(vectors=vectors)
+        try:
+            # Perform the upsert operation
+            response = self.index.upsert(vectors=vectors)
+            
+            # Print or log the response for debugging
+            print(f"Upsert response: {response}")
+            
+            # Return the response
+            return response
+        except Exception as e:
+            print(f"Error during upsert: {e}")
+            return None
+
     
     def query_vector(self, vector, top_k=5):
         """
@@ -50,4 +67,6 @@ class PineconeManager:
         Returns:
             dict: The fetched vector data.
         """
+        print("here\n")
         return self.index.fetch(ids=[vector_id])
+

@@ -1,3 +1,6 @@
+import sys,os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from preprocessing.text_processing import TextProcessor
 from preprocessing.feature_extraction import FeatureExtractor
 from models.sentence_transformer import SentenceTransformerModel

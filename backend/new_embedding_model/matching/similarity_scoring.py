@@ -14,21 +14,21 @@ def compute_similarity(vector1, vector2):
     return 1 - cosine(vector1, vector2)
 
 def rank_menu_items(user_vector, menu_vectors):
-    """
-    Ranks menu items based on their similarity to the user's preference vector.
-    
-    Args:
-        user_vector (numpy.ndarray): The combined vector representing the user's preferences.
-        menu_vectors (dict): A dictionary where keys are menu item IDs and values are their corresponding vectors.
-        
-    Returns:
-        list: A list of menu item IDs sorted by their similarity to the user's preferences.
-    """
     similarities = []
-    for item_id, menu_vector in menu_vectors.items():
-        similarity = compute_similarity(user_vector, menu_vector)
-        similarities.append((item_id, similarity))
     
-    # Sort items by similarity score in descending order
+    # Iterate over the list of matches
+    for match in menu_vectors['matches']:
+        item_id = match['id']
+        item_values = match['values']  # This should be the vector values
+        if not item_values:
+            continue  # Skip if there are no values
+        
+        similarity = compute_similarity(user_vector, item_values)
+        similarities.append((item_id, similarity))
+
+    # Sort by similarity score in descending order
     similarities.sort(key=lambda x: x[1], reverse=True)
-    return [item_id for item_id, _ in similarities]
+
+    # Return the top matches
+    return similarities[:3]  # Example: returning top 3 matches
+

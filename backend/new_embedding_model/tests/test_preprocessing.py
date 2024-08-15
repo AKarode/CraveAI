@@ -1,3 +1,5 @@
+import sys,os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 from preprocessing.feature_extraction import FeatureExtractor
 from preprocessing.text_processing import TextProcessor
