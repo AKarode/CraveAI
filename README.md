@@ -31,3 +31,7 @@ npm run ios
 
 ## Contribution Rules
 - Any edits made should be on new branch, main is left untouched until someone else tests it.
+
+## Features to Add
+- After items are recommended to user, user selects item they pick. This will be stored as a 1 in backend if the item is picked, 0 if the item wasn't picked, or NA if this data is unavaliable.
+- After, maybe about 30 minutes, notification sent to user on whether they enjoyed the item they picked. This will also be stored as a 1 in backend if the user did enjoy the item, 0 if they said they didn't and NA if the data is unavaliable
