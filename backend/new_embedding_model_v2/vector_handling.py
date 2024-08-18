@@ -175,16 +175,16 @@ class UserVectorManager:
             "metadata": metadata
         }])
 
-    def upload_item_vector(self, item_vector):
+    def upload_item_vector(self, item_vector, item_name):
         item_vector_id = f"item_{uuid.uuid4()}"
         self.item_index.upsert(vectors=[{
             "id": item_vector_id,
             "values": item_vector.tolist(),
-            "metadata": {}  # Add any item-specific metadata if needed
+            "metadata": {"name" : item_name}  # Add any item-specific metadata if needed
         }])
         return item_vector_id
 
-    def update_user_vector(self, vector_id, new_query, new_item_vector=None, selected=None, liked=None):
+    def update_user_vector(self, vector_id, new_query, new_item_vector=None, new_item_name = None, selected=None, liked=None):
         existing_vector = self.index.fetch(ids=[vector_id])['vectors'][vector_id]
         
         feature_extractor = FeatureExtractor()
@@ -198,8 +198,8 @@ class UserVectorManager:
         ) / (existing_vector['metadata']['num_queries'] + 1)
         
         existing_vector['metadata']['num_queries'] += 1
-        if new_item_vector is not None:
-            item_vector_id = self.upload_item_vector(new_item_vector)
+        if new_item_vector is not None and new_item_name is not None:
+            item_vector_id = self.upload_item_vector(new_item_vector, new_item_name)
             existing_vector['metadata']['item_vector_id'] = item_vector_id  # Store the item vector ID reference
         if selected is not None:
             existing_vector['metadata']['selected'] = selected
@@ -251,4 +251,4 @@ if __name__ == "__main__":
     # Example: Update the user vector with a new item vector
     new_query = "I don't like chicken"
     new_item_vector = np.random.rand(FEATURE_VECTOR_DIM + SEMANTIC_VECTOR_DIM) # Example item vector
-    user_vector_manager.update_user_vector(vector_id, new_query, new_item_vector=new_item_vector, selected=1, liked=0)
+    user_vector_manager.update_user_vector(vector_id, new_query, new_item_vector=new_item_vector, new_item_name="fake_item", selected=1, liked=0)
