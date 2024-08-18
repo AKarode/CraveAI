@@ -1,3 +1,7 @@
+#Make it so that we don't give each user its own index due to pinecones restrictions
+#Look into making user_constraints better
+
+# Feature vector and semantic vector dimensions
 FEATURE_VECTOR_DIM = 5  # Number of features
 SEMANTIC_VECTOR_DIM = 384
 
@@ -117,7 +121,6 @@ class UserVectorManager:
         self.pc = pinecone.Pinecone(api_key=pinecone_api_key)
         self.index_name = "vector-history"
 
-        # Calculate the correct dimension for your vectors
         total_vector_dim = FEATURE_VECTOR_DIM + SEMANTIC_VECTOR_DIM
 
         if self.index_name not in self.pc.list_indexes().names():
@@ -132,6 +135,20 @@ class UserVectorManager:
             )
         self.index = self.pc.Index(self.index_name)
 
+        self.item_index_name = "item-vectors"
+
+        if self.item_index_name not in self.pc.list_indexes().names():
+            self.pc.create_index(
+                name=self.item_index_name,
+                dimension=total_vector_dim,
+                metric='cosine',
+                spec=pinecone.ServerlessSpec(
+                    cloud='aws',
+                    region='us-east-1'
+                )
+            )
+        self.item_index = self.pc.Index(self.item_index_name)
+
     def create_unique_vector_id(self, user_id):
         return f"{user_id}_{uuid.uuid4()}"
 
@@ -145,7 +162,7 @@ class UserVectorManager:
             "allergies": constraints["allergies"],
             "dietary_restrictions": constraints["dietary_restrictions"],
             "user_dislikes": constraints["user_dislikes"],
-            "item": "",
+            "item_vector_id": "",  # Reference to the item vector ID
             "selected": -1,
             "liked": -1
         }
@@ -158,7 +175,16 @@ class UserVectorManager:
             "metadata": metadata
         }])
 
-    def update_user_vector(self, vector_id, new_query, new_item=None, selected=None, liked=None):
+    def upload_item_vector(self, item_vector):
+        item_vector_id = f"item_{uuid.uuid4()}"
+        self.item_index.upsert(vectors=[{
+            "id": item_vector_id,
+            "values": item_vector.tolist(),
+            "metadata": {}  # Add any item-specific metadata if needed
+        }])
+        return item_vector_id
+
+    def update_user_vector(self, vector_id, new_query, new_item_vector=None, selected=None, liked=None):
         existing_vector = self.index.fetch(ids=[vector_id])['vectors'][vector_id]
         
         feature_extractor = FeatureExtractor()
@@ -172,8 +198,9 @@ class UserVectorManager:
         ) / (existing_vector['metadata']['num_queries'] + 1)
         
         existing_vector['metadata']['num_queries'] += 1
-        if new_item:
-            existing_vector['metadata']['item'] = new_item
+        if new_item_vector is not None:
+            item_vector_id = self.upload_item_vector(new_item_vector)
+            existing_vector['metadata']['item_vector_id'] = item_vector_id  # Store the item vector ID reference
         if selected is not None:
             existing_vector['metadata']['selected'] = selected
         if liked is not None:
@@ -221,5 +248,7 @@ if __name__ == "__main__":
     )
     user_vector_manager.upload_to_pinecone(combined_vector, metadata, vector_id)
 
+    # Example: Update the user vector with a new item vector
     new_query = "I don't like chicken"
-    user_vector_manager.update_user_vector(vector_id, new_query, new_item="Spicy Chicken", selected=1, liked=0)
+    new_item_vector = np.random.rand(FEATURE_VECTOR_DIM + SEMANTIC_VECTOR_DIM) # Example item vector
+    user_vector_manager.update_user_vector(vector_id, new_query, new_item_vector=new_item_vector, selected=1, liked=0)
