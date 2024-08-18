@@ -2,16 +2,19 @@
 #Look into making user_constraints better
 
 # Feature vector and semantic vector dimensions
-FEATURE_VECTOR_DIM = 5  # Number of features
-SEMANTIC_VECTOR_DIM = 384
-
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import pinecone
 import spacy
 import uuid
+import random
 from dotenv import load_dotenv
 import os
+from time import sleep
+
+# Feature vector and semantic vector dimensions
+FEATURE_VECTOR_DIM = 5  # Number of features
+SEMANTIC_VECTOR_DIM = 384
 
 class FeatureExtractor:
     def __init__(self):
@@ -149,14 +152,19 @@ class UserVectorManager:
             )
         self.item_index = self.pc.Index(self.item_index_name)
 
-    def create_unique_vector_id(self, user_id):
-        return f"{user_id}_{uuid.uuid4()}"
+    def create_unique_vector_id(self, user_id, chat_id=None):
+        return f"{user_id}_{chat_id}_{uuid.uuid4()}" if chat_id else f"{user_id}_{uuid.uuid4()}"
 
-    def create_user_vector(self, user_id, feature_vector, semantic_vector, constraints):
+    def create_chat_id(self, user_id):
+        random_number = random.randint(1000, 9999)  # Generate a 4-digit random number
+        return f"{user_id}_{random_number}"
+
+    def create_user_vector(self, user_id, chat_id, feature_vector, semantic_vector, constraints):
         combined_vector = np.concatenate((feature_vector, semantic_vector))
-        vector_id = self.create_unique_vector_id(user_id)
+        vector_id = self.create_unique_vector_id(user_id, chat_id)
         metadata = {
             "user_id": user_id,
+            "chat_id": chat_id,
             "vector_id": vector_id,
             "num_queries": 1,
             "allergies": constraints["allergies"],
@@ -175,16 +183,16 @@ class UserVectorManager:
             "metadata": metadata
         }])
 
-    def upload_item_vector(self, item_vector, item_name):
-        item_vector_id = f"item_{uuid.uuid4()}"
+    def upload_item_vector(self, item_vector, item_name, chat_id):
+        item_vector_id = f"item_{chat_id}_{uuid.uuid4()}"
         self.item_index.upsert(vectors=[{
             "id": item_vector_id,
             "values": item_vector.tolist(),
-            "metadata": {"name" : item_name}  # Add any item-specific metadata if needed
+            "metadata": {"name": item_name, "chat_id": chat_id}  # Include chat_id in metadata
         }])
         return item_vector_id
 
-    def update_user_vector(self, vector_id, new_query, new_item_vector=None, new_item_name = None, selected=None, liked=None):
+    def update_user_vector(self, vector_id, new_query, chat_id, new_item_vector=None, new_item_name=None, selected=None, liked=None):
         existing_vector = self.index.fetch(ids=[vector_id])['vectors'][vector_id]
         
         feature_extractor = FeatureExtractor()
@@ -199,7 +207,7 @@ class UserVectorManager:
         
         existing_vector['metadata']['num_queries'] += 1
         if new_item_vector is not None and new_item_name is not None:
-            item_vector_id = self.upload_item_vector(new_item_vector, new_item_name)
+            item_vector_id = self.upload_item_vector(new_item_vector, new_item_name, chat_id)
             existing_vector['metadata']['item_vector_id'] = item_vector_id  # Store the item vector ID reference
         if selected is not None:
             existing_vector['metadata']['selected'] = selected
@@ -229,6 +237,9 @@ if __name__ == "__main__":
     feature_extractor = FeatureExtractor()
     user_vector_manager = UserVectorManager(pinecone_api_key)
 
+    user_id = "user125"
+    chat_id = user_vector_manager.create_chat_id(user_id)  # Generate a random chat ID
+
     survey_data = {
         "spiciness": 2,
         "sweetness": 1,
@@ -242,13 +253,12 @@ if __name__ == "__main__":
     semantic_vector = feature_extractor.create_semantic_vector(query)
     user_constraints = feature_extractor.extract_user_constraints(query)
 
-    user_id = "user125"
     combined_vector, metadata, vector_id = user_vector_manager.create_user_vector(
-        user_id, feature_vector, semantic_vector, user_constraints
+        user_id, chat_id, feature_vector, semantic_vector, user_constraints
     )
     user_vector_manager.upload_to_pinecone(combined_vector, metadata, vector_id)
-
+    sleep(1)
     # Example: Update the user vector with a new item vector
     new_query = "I don't like chicken"
     new_item_vector = np.random.rand(FEATURE_VECTOR_DIM + SEMANTIC_VECTOR_DIM) # Example item vector
-    user_vector_manager.update_user_vector(vector_id, new_query, new_item_vector=new_item_vector, new_item_name="fake_item", selected=1, liked=0)
+    user_vector_manager.update_user_vector(vector_id, new_query, chat_id, new_item_vector=new_item_vector, new_item_name="fake_item", selected=1, liked=0)
