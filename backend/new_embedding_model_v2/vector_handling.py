@@ -1,3 +1,6 @@
+FEATURE_VECTOR_DIM = 5  # Number of features
+SEMANTIC_VECTOR_DIM = 384
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import pinecone
@@ -112,6 +115,22 @@ class FeatureExtractor:
 class UserVectorManager:
     def __init__(self, pinecone_api_key):
         self.pc = pinecone.Pinecone(api_key=pinecone_api_key)
+        self.index_name = "vector-history"
+
+        # Calculate the correct dimension for your vectors
+        total_vector_dim = FEATURE_VECTOR_DIM + SEMANTIC_VECTOR_DIM
+
+        if self.index_name not in self.pc.list_indexes().names():
+            self.pc.create_index(
+                name=self.index_name,
+                dimension=total_vector_dim,
+                metric='cosine',
+                spec=pinecone.ServerlessSpec(
+                    cloud='aws',
+                    region='us-east-1'
+                )
+            )
+        self.index = self.pc.Index(self.index_name)
 
     def create_unique_vector_id(self, user_id):
         return f"{user_id}_{uuid.uuid4()}"
@@ -132,28 +151,15 @@ class UserVectorManager:
         }
         return combined_vector, metadata, vector_id
 
-    def upload_to_pinecone(self, user_id, combined_vector, metadata, vector_id):
-        index_name = user_id.lower().replace('_', '-')
-        if index_name not in self.pc.list_indexes().names():
-            self.pc.create_index(
-                name=index_name,
-                dimension=len(combined_vector),
-                metric='cosine',
-                spec=pinecone.ServerlessSpec(
-                    cloud='aws',
-                    region='us-east-1'
-                )
-            )
-        index = self.pc.Index(index_name)
-        index.upsert(vectors=[{
+    def upload_to_pinecone(self, combined_vector, metadata, vector_id):
+        self.index.upsert(vectors=[{
             "id": vector_id,
             "values": combined_vector.tolist(),
             "metadata": metadata
         }])
 
-    def update_user_vector(self, user_id, vector_id, new_query, new_item=None, selected=None, liked=None):
-        index = self.pc.Index(user_id.lower().replace('_', '-'))
-        existing_vector = index.fetch(ids=[vector_id])['vectors'][vector_id]
+    def update_user_vector(self, vector_id, new_query, new_item=None, selected=None, liked=None):
+        existing_vector = self.index.fetch(ids=[vector_id])['vectors'][vector_id]
         
         feature_extractor = FeatureExtractor()
         new_extracted_features = feature_extractor.extract_features_from_text(new_query)
@@ -183,7 +189,7 @@ class UserVectorManager:
         existing_vector['metadata']['dietary_restrictions'] = constraints['dietary_restrictions']
         existing_vector['metadata']['user_dislikes'] = constraints['user_dislikes']
 
-        index.upsert(vectors=[{
+        self.index.upsert(vectors=[{
             "id": vector_id,
             "values": updated_vector.tolist(),
             "metadata": existing_vector['metadata']
@@ -213,7 +219,7 @@ if __name__ == "__main__":
     combined_vector, metadata, vector_id = user_vector_manager.create_user_vector(
         user_id, feature_vector, semantic_vector, user_constraints
     )
-    user_vector_manager.upload_to_pinecone(user_id, combined_vector, metadata, vector_id)
-    #TODO update probably not working because it has to finish uploading to pinecone before updating
+    user_vector_manager.upload_to_pinecone(combined_vector, metadata, vector_id)
+
     new_query = "I don't like chicken"
-    user_vector_manager.update_user_vector(user_id, vector_id, new_query, new_item="Spicy Chicken", selected=1, liked=0)
+    user_vector_manager.update_user_vector(vector_id, new_query, new_item="Spicy Chicken", selected=1, liked=0)
