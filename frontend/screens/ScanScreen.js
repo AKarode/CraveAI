@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { ImageBackground, View, Text, StyleSheet, TouchableOpacity, TextInput, Button, FlatList, Alert, Modal, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import backgroundImage from '../assets/background.png';
-
 
 const ChatScreen = () => {
   const navigation = useNavigation();
@@ -55,14 +53,23 @@ const ChatScreen = () => {
     setModalVisible(false);
   };
 
-  const renderRestaurant = ({ item }) => (
-    <TouchableOpacity style={styles.restaurantContainer} onPress={() => handleRestaurantPress(item)}>
-      <Text style={styles.restaurantName}>{item.name}</Text>
-      <Text style={styles.restaurantInfo}>Rating: {item.rating}</Text>
-      <Text style={styles.restaurantInfo}>Address: {item.location.address1}, {item.location.city}</Text>
-      <Text style={styles.restaurantInfo}>Phone: {item.phone}</Text>
-    </TouchableOpacity>
-  );
+  const sendRestaurantData = (restaurant) => {
+    fetch('http://localhost:5000/endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(restaurant),
+    })
+      .then(response => response.json())
+      .then(data => {
+        Alert.alert('Success', 'Restaurant data sent successfully');
+      })
+      .catch(error => {
+        Alert.alert('Error', 'Failed to send restaurant data');
+        console.error('Error sending data:', error);
+      });
+  };
 
   const formatUrl = (name, location) => {
     // Remove punctuation and convert to lowercase
@@ -74,6 +81,15 @@ const ChatScreen = () => {
   const openMenuLink = (url) => {
     Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
   };
+
+  const renderRestaurant = ({ item }) => (
+    <TouchableOpacity style={styles.restaurantContainer} onPress={() => handleRestaurantPress(item)}>
+      <Text style={styles.restaurantName}>{item.name}</Text>
+      <Text style={styles.restaurantInfo}>Rating: {item.rating}</Text>
+      <Text style={styles.restaurantInfo}>Address: {item.location.address1}, {item.location.city}</Text>
+      <Text style={styles.restaurantInfo}>Phone: {item.phone}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -120,6 +136,7 @@ const ChatScreen = () => {
                   {formatUrl(selectedRestaurant.name, selectedRestaurant.location.city)}
                 </Text>
               </TouchableOpacity>
+              <Button title="Confirm Restaurant" onPress={() => sendRestaurantData(selectedRestaurant)} />
               <Button title="Close" onPress={closeModal} />
             </View>
           </View>

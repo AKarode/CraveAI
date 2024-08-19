@@ -25,7 +25,7 @@
     "expo-status-bar": "~1.12.1",
     "firebase": "^10.12.5",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react-dom": "^18.2.0",
     "react-native": "0.74.2",
     "react-native-dotenv": "^3.4.11",
     "react-native-fs": "^2.20.0",
