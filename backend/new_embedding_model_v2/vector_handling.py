@@ -153,7 +153,7 @@ class UserVectorManager:
         self.item_index = self.pc.Index(self.item_index_name)
 
     def create_unique_vector_id(self, user_id, chat_id=None):
-        return f"{user_id}_{chat_id}_{uuid.uuid4()}" if chat_id else f"{user_id}_{uuid.uuid4()}"
+        return f"{chat_id}_{uuid.uuid4()}" if chat_id else f"{user_id}_{uuid.uuid4()}"
 
     def create_chat_id(self, user_id):
         random_number = random.randint(1000, 9999)  # Generate a 4-digit random number
