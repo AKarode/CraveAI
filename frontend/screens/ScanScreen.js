@@ -53,24 +53,6 @@ const ChatScreen = () => {
     setModalVisible(false);
   };
 
-  const sendRestaurantData = (restaurant) => {
-    fetch('http://localhost:5000/endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(restaurant),
-    })
-      .then(response => response.json())
-      .then(data => {
-        Alert.alert('Success', 'Restaurant data sent successfully');
-      })
-      .catch(error => {
-        Alert.alert('Error', 'Failed to send restaurant data');
-        console.error('Error sending data:', error);
-      });
-  };
-
   const formatUrl = (name, location) => {
     // Remove punctuation and convert to lowercase
     const formattedName = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
@@ -81,6 +63,38 @@ const ChatScreen = () => {
   const openMenuLink = (url) => {
     Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
   };
+
+  const sendRestaurantData = (restaurant) => {
+    // Generate the correct menu URL using the formatUrl function
+    const menuUrl = formatUrl(restaurant.name, restaurant.location.city);
+    
+    // Prepare the data to be sent, including the formatted menu URL
+    const dataToSend = {
+      name: restaurant.name,
+      rating: restaurant.rating,
+      address: `${restaurant.location.address1}, ${restaurant.location.city}`,
+      phone: restaurant.phone,
+      menuUrl, // This should be the URL you want to send
+    };
+  
+    // Send the data to the server
+    fetch('http://localhost:5000/endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend), // Send the data as JSON
+    })
+      .then(response => response.json())
+      .then(data => {
+        Alert.alert('Success', 'Restaurant data sent successfully');
+      })
+      .catch(error => {
+        Alert.alert('Error', 'Failed to send restaurant data');
+        console.error('Error sending data:', error);
+      });
+  };
+  
 
   const renderRestaurant = ({ item }) => (
     <TouchableOpacity style={styles.restaurantContainer} onPress={() => handleRestaurantPress(item)}>

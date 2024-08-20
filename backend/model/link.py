@@ -5,7 +5,7 @@ app = Flask(__name__)
 @app.route('/endpoint', methods=['POST'])
 def receive_url():
     data = request.get_json()
-    url = data.get('url')
+    url = data.get('menuUrl')
     if url:
         # Handle the URL (e.g., store it in a database or process it)
         print(f"Received URL: {url}")
