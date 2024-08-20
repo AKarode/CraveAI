@@ -78,7 +78,7 @@ const ChatScreen = () => {
     };
   
     // Send the data to the server
-    fetch('http://localhost:5000/endpoint', {
+    fetch('http://localhost:5001/endpoint', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
