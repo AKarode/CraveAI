@@ -1,12 +1,24 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from './HomeScreen';
-import ScanScreen from './ScanScreen';
+import SearchScreen from './SearchScreen';
 import AccountScreen from './AccountScreen';
 import ChatScreen from './ChatScreen';
-
+import OcrScreen from './OcrScreen'
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function SearchStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SearchStack" component={SearchScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="Ocr" component={OcrScreen} />
+    </Stack.Navigator>
+  );
+}
 
 export default function BottomTabsNavigator() {
   return (
@@ -16,31 +28,28 @@ export default function BottomTabsNavigator() {
           let iconName;
           if (route.name === 'Home') {
             iconName = 'home';
-          } else if (route.name === 'Chat') {
-            iconName = 'chatbubbles';
-          } else if (route.name === 'Scan') {
-            iconName = 'scan';
+          } else if (route.name === 'Search') {
+            iconName = 'search';
           } else if (route.name === 'Account') {
             iconName = 'person';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: 'maroon', // Active tab color
-        tabBarInactiveTintColor: 'black', // Inactive tab color
+        tabBarActiveTintColor: 'maroon',
+        tabBarInactiveTintColor: 'black',
         tabBarStyle: {
-          height: 70, // Adjust the height here
-          paddingBottom: 10, // Add padding to push icons up
+          height: 70,
+          paddingBottom: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 12, // Adjust font size if needed
-          paddingBottom: 5, // Add padding to push labels up if needed
+          fontSize: 12,
+          paddingBottom: 5,
         },
-        headerShown: false, // Hide the header here
+        headerShown: false,
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Scan" component={ScanScreen} />
-      <Tab.Screen name="Chat" component={ChatScreen} />
+      <Tab.Screen name="Search" component={SearchStack} />
       <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>
   );

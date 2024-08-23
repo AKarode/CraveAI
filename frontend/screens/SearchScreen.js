@@ -67,7 +67,7 @@ const ChatScreen = () => {
   const sendRestaurantData = (restaurant) => {
     // Generate the correct menu URL using the formatUrl function
     const menuUrl = formatUrl(restaurant.name, restaurant.location.city);
-    
+  
     // Prepare the data to be sent, including the formatted menu URL
     const dataToSend = {
       name: restaurant.name,
@@ -78,7 +78,7 @@ const ChatScreen = () => {
     };
   
     // Send the data to the server
-    fetch('http://localhost:5001/endpoint', {
+    fetch('http://localhost:5000/endpoint', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -87,7 +87,14 @@ const ChatScreen = () => {
     })
       .then(response => response.json())
       .then(data => {
-        Alert.alert('Success', 'Restaurant data sent successfully');
+        if (data.valid) {
+          navigation.navigate('Chat'); // Navigate to ChatScreen if the URL is valid
+          closeModal(); // Close the modal
+        } else {
+          Alert.alert('Error', 'Restaurant Data not available, please use our scanner to take menu data');
+          navigation.navigate('Ocr'); // Navigate to OcrScreen if the data isn't valid
+          closeModal(); // Close the modal
+        }
       })
       .catch(error => {
         Alert.alert('Error', 'Failed to send restaurant data');
@@ -95,7 +102,6 @@ const ChatScreen = () => {
       });
   };
   
-
   const renderRestaurant = ({ item }) => (
     <TouchableOpacity style={styles.restaurantContainer} onPress={() => handleRestaurantPress(item)}>
       <Text style={styles.restaurantName}>{item.name}</Text>

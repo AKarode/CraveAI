@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { RadioButton } from 'react-native-paper';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc} from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig'; // Import Firestore and auth
 import backgroundImage from '../assets/background.png';
 
@@ -38,27 +38,34 @@ export default function SurveyScreen({ navigation }) {
   const handleSubmit = async () => {
     try {
       const userId = auth.currentUser.uid;
-      const docRef = doc(db, 'surveyResponses', userId);
-
-      // Save the survey data as a JSON object
-      await setDoc(docRef, {
-        ...answers,
-        timestamp: new Date()
+      const surveyDocId = `surveydata_${userId}`;
+      const surveyDocRef = doc(db, 'users', userId, 'surveys', surveyDocId);
+  
+      // Save the survey data with the specified document ID
+      await setDoc(surveyDocRef, {
+        responses: {
+          ...answers,
+          timestamp: new Date()
+        }
       });
-
+  
       // Log the survey data to the console
       console.log("Survey data saved:", {
         userId,
-        ...answers,
-        timestamp: new Date()
+        responses: {
+          ...answers,
+          timestamp: new Date()
+        }
       });
-
+  
       // Navigate to the home screen or show a success message
       handleNavigate();
     } catch (error) {
       console.error("Error saving survey data:", error);
     }
   };
+  
+  
 
   const renderQuestion = (question, questionText, options) => (
     <View style={styles.questionContainer} key={question}>
