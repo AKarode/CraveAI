@@ -44,7 +44,7 @@ class MenuVectorizer:
         
         return combined_vector
 
-    def vectorize_menu(self, menu_items, user_id):
+    def vectorize_menu(self, menu_items, user_id, chat_id):
         """
         Vectorize an array of menu items and upload them to Pinecone.
         
@@ -53,8 +53,7 @@ class MenuVectorizer:
                                Example: [{"name": "chicken_sandwich", "description": "spicy chicken fillet", "price": "$20"}]
             user_id (str): The ID of the user, used for generating a unique chat_id.
         """
-        # Generate a unique chat ID for this batch of menu uploads
-        chat_id = self.generate_chat_id(user_id)
+        
 
         for item in menu_items:
             combined_vector = self.process_menu_item(item)
