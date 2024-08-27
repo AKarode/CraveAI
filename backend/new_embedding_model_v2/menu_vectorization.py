@@ -10,6 +10,7 @@ SEMANTIC_VECTOR_DIM = 384
 
 class MenuVectorizer:
     def __init__(self, pinecone_api_key):
+        # Initialize the feature extractor and user vector manager
         self.feature_extractor = FeatureExtractor()
         self.user_vector_manager = UserVectorManager(pinecone_api_key)
 
@@ -39,7 +40,7 @@ class MenuVectorizer:
         semantic_input = f"{item['name']} {item['description']}"
         semantic_vector = self.feature_extractor.create_semantic_vector(semantic_input)
         
-        # Combine the feature vector and semantic vector
+        # Combine the feature vector and semantic vector into a single vector
         combined_vector = np.concatenate((feature_vector, semantic_vector))
         
         return combined_vector
@@ -52,15 +53,16 @@ class MenuVectorizer:
             menu_items (list): List of dictionaries, where each dictionary contains details of a menu item.
                                Example: [{"name": "chicken_sandwich", "description": "spicy chicken fillet", "price": "$20"}]
             user_id (str): The ID of the user, used for generating a unique chat_id.
+            chat_id (str): The unique chat session ID.
         """
-        
-
         for item in menu_items:
+            # Process each menu item to generate its combined vector
             combined_vector = self.process_menu_item(item)
             # Upload the item vector to Pinecone with the name of the item and chat_id
             self.user_vector_manager.upload_item_vector(combined_vector, item_name=item["name"], chat_id=chat_id)
 
 if __name__ == "__main__":
+    # Load environment variables from the .env file
     load_dotenv()
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
 
@@ -77,6 +79,8 @@ if __name__ == "__main__":
     # Example user ID
     user_id = "user125"
 
-    # Vectorize the menu items and upload them to Pinecone
-    menu_vectorizer.vectorize_menu(menu_items, user_id)
+    # Example chat ID
+    chat_id = menu_vectorizer.generate_chat_id(user_id)
 
+    # Vectorize the menu items and upload them to Pinecone
+    menu_vectorizer.vectorize_menu(menu_items, user_id, chat_id)

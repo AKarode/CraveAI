@@ -14,7 +14,13 @@ def cosine_similarity_model(vector1, vector2):
 
 # Custom Neural Network Model
 class CustomNeuralNetwork(nn.Module):
-    def __init__(self, input_dim=778):  # Set the default input_dim to 778
+    def __init__(self, input_dim=778):
+        """
+        Initialize the neural network layers.
+        
+        Args:
+            input_dim (int): The dimension of the input vector (default is 778).
+        """
         super(CustomNeuralNetwork, self).__init__()
         self.fc1 = nn.Linear(input_dim, 128)
         self.fc2 = nn.Linear(128, 64)
@@ -23,7 +29,15 @@ class CustomNeuralNetwork(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        #print(f"Shape of x: {x.shape}")
+        """
+        Define the forward pass of the neural network.
+        
+        Args:
+            x (torch.Tensor): Input tensor.
+            
+        Returns:
+            torch.Tensor: Output tensor after passing through the network.
+        """
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.relu(self.fc3(x))
@@ -33,14 +47,33 @@ class CustomNeuralNetwork(nn.Module):
 # Dataset class to handle user-item vectors
 class UserItemDataset(Dataset):
     def __init__(self, user_vectors, item_vectors, labels):
+        """
+        Initialize the dataset with user vectors, item vectors, and labels.
+        
+        Args:
+            user_vectors (list): List of user vectors.
+            item_vectors (list): List of item vectors.
+            labels (list): List of labels indicating user preferences.
+        """
         self.user_vectors = user_vectors
         self.item_vectors = item_vectors
         self.labels = labels
 
     def __len__(self):
+        """Return the length of the dataset."""
         return len(self.labels)
 
     def __getitem__(self, idx):
+        """
+        Retrieve a specific user-item pair and its corresponding label.
+        
+        Args:
+            idx (int): Index of the item to retrieve.
+        
+        Returns:
+            torch.Tensor: Combined user-item vector.
+            torch.Tensor: Corresponding label.
+        """
         user_vector = self.user_vectors[idx]
         item_vector = self.item_vectors[idx]
         combined_vector = np.concatenate((user_vector, item_vector))  # Concatenate to size 778
@@ -49,16 +82,33 @@ class UserItemDataset(Dataset):
 
 # Function to train the neural network
 def train_neural_network(user_vectors, item_vectors, labels, epochs=10, lr=0.001, batch_size=32):
-    print("USER VECTOR SIZE : ", len(user_vectors), "ITEM VECTOR SIZE : ", len(item_vectors), "LABLE SIZE : ", len(labels))
+    """
+    Train the neural network model on user-item vectors.
+    
+    Args:
+        user_vectors (list): List of user vectors.
+        item_vectors (list): List of item vectors.
+        labels (list): List of labels for training.
+        epochs (int): Number of training epochs (default is 10).
+        lr (float): Learning rate for the optimizer (default is 0.001).
+        batch_size (int): Batch size for training (default is 32).
+        
+    Returns:
+        CustomNeuralNetwork: Trained neural network model.
+    """
+    # Determine the input dimension for the neural network
     input_dim = len(user_vectors[0]) + len(item_vectors[0])  # Expecting the input dimension to be 778
-    print("INPUT DIM :", input_dim)
+    
+    # Create dataset and dataloader for training
     dataset = UserItemDataset(user_vectors, item_vectors, labels)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
+    # Initialize the neural network model, loss function, and optimizer
     model = CustomNeuralNetwork(input_dim=input_dim)  # Initialize model with correct input_dim
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
+    # Training loop
     model.train()
     for epoch in range(epochs):
         total_loss = 0
@@ -71,43 +121,68 @@ def train_neural_network(user_vectors, item_vectors, labels, epochs=10, lr=0.001
             optimizer.step()
             total_loss += loss.item()
 
+        # Print the loss for each epoch
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataloader)}")
 
     return model
 
 # Rule-based filtering function
 def rule_based_filter(items, user_constraints):
+    """
+    Filter menu items based on user constraints such as allergies, dietary restrictions, and dislikes.
+    
+    Args:
+        items (list): List of menu items.
+        user_constraints (dict): Dictionary of user constraints including allergies, dietary restrictions, and dislikes.
+        
+    Returns:
+        list: List of filtered menu items that do not violate user constraints.
+    """
     filtered_items = []
     extractor = FeatureExtractor()
 
     for item in items:
         item_text = f"{item['name']} {item['description']}"
-        doc = extractor.nlp(item_text)
         
-        # Checking for allergies
+        # Check for allergies in the item description
         if any(allergen in item_text.lower() for allergen in user_constraints.get("allergies", [])):
             continue
         
-        # Checking for dietary restrictions
+        # Check for dietary restrictions in the item description
         if any(restriction in item_text.lower() for restriction in user_constraints.get("dietary_restrictions", [])):
             continue
         
-        # Checking for dislikes
+        # Check for dislikes in the item description
         if any(dislike in item_text.lower() for dislike in user_constraints.get("user_dislikes", [])):
             continue
         
+        # If the item passes all checks, add it to the filtered list
         filtered_items.append(item)
 
     return filtered_items
 
 # Inference function (getting recommendations)
 def get_recommendations(model, user_vector, item_vectors):
-    model.eval()
+    """
+    Get recommendations by scoring each item vector using the trained neural network model.
+    
+    Args:
+        model (CustomNeuralNetwork): Trained neural network model.
+        user_vector (np.ndarray): User vector.
+        item_vectors (list): List of item vectors.
+        
+    Returns:
+        list: List of scores for each item, representing the model's confidence in the recommendation.
+    """
+    model.eval()  # Set the model to evaluation mode
     scores = []
+    
+    # Compute scores for each item vector
     with torch.no_grad():
         for item_vector in item_vectors:
             combined_vector = np.concatenate((user_vector, item_vector))  # Ensure size is 778
             combined_tensor = torch.tensor(combined_vector, dtype=torch.float32).unsqueeze(0)  # Add batch dimension
             score = model(combined_tensor).item()
             scores.append(score)
+    
     return scores

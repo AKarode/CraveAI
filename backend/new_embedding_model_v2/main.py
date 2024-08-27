@@ -2,6 +2,7 @@
 FEATURE_VECTOR_DIM = 5  # Number of features
 SEMANTIC_VECTOR_DIM = 384
 
+# Import necessary modules
 import os
 import numpy as np
 import firebase_admin
@@ -10,13 +11,14 @@ from vector_handling import FeatureExtractor, UserVectorManager
 from menu_vectorization import MenuVectorizer
 from models import cosine_similarity_model, train_neural_network, rule_based_filter
 from dotenv import load_dotenv
-from time import sleep
 import torch
+from time import sleep
 
-# Load environment variables
+# Load environment variables from the .env file
 load_dotenv()
 firebase_path = os.getenv("FIREBASE_PATH")
-# Initialize Firebase
+
+# Initialize Firebase with credentials
 firebase_cred = credentials.Certificate(firebase_path)  # Provide the path to your Firebase credentials
 firebase_admin.initialize_app(firebase_cred)
 db = firestore.client()
@@ -31,12 +33,12 @@ def fetch_user_preferences(user_id):
     """
     Fetch user preferences such as allergies, dietary restrictions, dislikes, and taste preferences from Firebase.
     """
-    #Load survey responses from firebase
+    # Load survey responses from Firebase
     doc_ref = db.collection("surveyResponses").document(user_id)
     doc = doc_ref.get()
-    #if the doc is there then load in all the data from the document
-    if doc.exists:  # Fixed this line
+    if doc.exists:
         data = doc.to_dict()
+        # Extract relevant user preferences from the Firebase document
         allergies = data.get("allergies", [])
         dietary_restrictions = data.get("dietary_restrictions", [])
         dislikes = data.get("dislikes", [])
@@ -45,7 +47,8 @@ def fetch_user_preferences(user_id):
         savory = data.get("savory", -1)
         return allergies, dietary_restrictions, dislikes, spiciness, sweetness, savory
     else:
-        return [], [], [], -1, -1, -1  # Return defaults if no data is found
+        # Return default values if the document is not found
+        return [], [], [], -1, -1, -1
 
 def initialize_chat(user_text, user_id, menu_data):
     """
@@ -68,7 +71,8 @@ def initialize_chat(user_text, user_id, menu_data):
         "savory": savory,
     }
     feature_vector = feature_extractor.create_feature_vector(survey_data, extracted_features)
-    #Load user_constraints from text
+
+    # Extract user constraints based on user input and preferences
     user_constraints = feature_extractor.extract_user_constraints(
         user_text, allergies, dietary_restrictions, dislikes
     )
@@ -87,16 +91,16 @@ def initialize_chat(user_text, user_id, menu_data):
 
     # Vectorize the filtered menu items and upload them to Pinecone
     menu_vectorizer.vectorize_menu(filtered_menu, user_id, chat_id)
-    #return chat_id and vector_id for future use
+
+    # Return chat_id and vector_id for future use
     return chat_id, vector_id
 
 def update_user_vector(user_text, vector_id):
     """
-    Updates the user vector in an ongoing chat session.
+    Updates the user vector in an ongoing chat session with new user input.
     """
     # Fetch the original user vector using the provided vector_id
     original_vector = user_vector_manager.index.fetch(ids=[vector_id])['vectors'][vector_id]
-
     chat_id = original_vector['metadata']['chat_id']
 
     # Update the user vector with the new user text
@@ -106,31 +110,28 @@ def update_user_vector(user_text, vector_id):
         chat_id=chat_id
     )
 
-
 def get_recommendations(user_id, vector_id, chat_id, k):
+    """
+    Generate item recommendations based on the user vector and historical interactions.
+    """
     # Fetch the original user vector using the provided vector_id
     original_vector = np.array(user_vector_manager.index.fetch(ids=[vector_id])['vectors'][vector_id]['values'])
-    
-    # Convert the original vector to a list before querying Pinecone
     original_vector_list = original_vector.tolist()
-    
+
     # Fetch all user vectors for the given user_id from Pinecone and filter based on feedback
-    user_vectors = []
     query_response = user_vector_manager.index.query(
         vector=original_vector_list,
         filter={"user_id": {"$eq": user_id}},
-        top_k=1000,  # Fetch up to 1000 vectors, adjust this if necessary
-        include_metadata=True,  # Include metadata in the response
-        include_values=True  # Include values in the response
+        top_k=1000,
+        include_metadata=True,
+        include_values=True
     )
     
     # Collect only user vectors with valid feedback (selected != -1)
-    valid_user_vectors = []
-    for match in query_response.get('matches', []):
-        if match['metadata'].get('selected') != -1:
-            valid_user_vectors.append(np.array(match['values']))
-    
-    print(f"Number of valid user vectors: {len(valid_user_vectors)}")
+    valid_user_vectors = [
+        np.array(match['values']) for match in query_response.get('matches', [])
+        if match['metadata'].get('selected') != -1
+    ]
 
     # If there are not enough valid user vectors, use cosine similarity instead of the neural network
     if len(valid_user_vectors) <= k:
@@ -147,7 +148,8 @@ def get_recommendations(user_id, vector_id, chat_id, k):
             for match in item_query_response['matches']:
                 item_vector_values = np.array(match['values'])
                 item_vectors.append((item_vector_values, match['metadata']['name'], match['id']))
-        print("item_vector number", len(item_vectors))
+
+        # Calculate cosine similarity scores for items
         scores = [
             (item_name, item_id, cosine_similarity_model(original_vector, item_vector_values))
             for item_vector_values, item_name, item_id in item_vectors
@@ -167,49 +169,38 @@ def get_recommendations(user_id, vector_id, chat_id, k):
             for match in item_query_response['matches']:
                 item_vector_values = np.array(match['values'])
                 item_vectors.append((item_vector_values, match['metadata']['name'], match['id']))
-        print("item_vector number", len(item_vectors))
         
-        # Ensure that there are item vectors to train the neural network
         if len(item_vectors) > 0:
+            # Prepare data for neural network training
             training_user_vectors = []
             training_item_vectors = []
             item_labels = []
 
             for match in query_response.get('matches', []):
-                # Check if the user vector has a valid `selected` value
                 if match['metadata'].get('selected') != -1:
-                    # Get the user vector
                     user_vector = np.array(match['values'])
                     training_user_vectors.append(user_vector)
                     
-                    # Fetch the corresponding item vector from Pinecone, irrespective of chat_id
                     item_vector_id = match['metadata'].get('item_vector_id')
                     item_vector_response = user_vector_manager.item_index.fetch(ids=[item_vector_id])
                     item_vector = np.array(item_vector_response['vectors'][item_vector_id]['values'])
                     training_item_vectors.append(item_vector)
 
-                    # Determine label based on `liked` and `selected`
                     liked = match['metadata'].get('liked')
                     selected = match['metadata'].get('selected')
-
-                    if liked != -1:
-                        label = liked
-                    else:
-                        label = selected
-                
+                    label = liked if liked != -1 else selected
                     item_labels.append(label)
 
-            # Now train the neural network with user vectors and item vectors
+            # Train the neural network with user vectors and item vectors
             model = train_neural_network(training_user_vectors, training_item_vectors, item_labels, epochs=10)
 
+            # Score each item vector using the neural network
             scores = []
             for item_vector_values, item_name, item_id in item_vectors:
                 combined_vector = np.concatenate((original_vector, item_vector_values))
-
-                # Create a tensor of shape [778]
-                combined_tensor = torch.tensor(combined_vector, dtype=torch.float32).unsqueeze(0)  # Add batch dimension
+                combined_tensor = torch.tensor(combined_vector, dtype=torch.float32).unsqueeze(0)
                 
-                # Separate tensor
+                # Separate tensor into user and item parts for neural network input
                 user_part = combined_tensor[:, :389]
                 item_part = combined_tensor[:, 389:]
                 stacked_tensor = torch.stack((user_part, item_part)).unsqueeze(0)
@@ -226,16 +217,6 @@ def get_recommendations(user_id, vector_id, chat_id, k):
     top_items = [item_id for _, item_id, _ in scores[:k]]
 
     return top_items
-
-
-
-
-
-
-
-
-
-
 
 def create_and_upload_copies(user_id, vector_id, k, top_items):
     """
@@ -257,7 +238,7 @@ def create_and_upload_copies(user_id, vector_id, k, top_items):
 
         # Upload the new vector to Pinecone
         user_vector_manager.upload_to_pinecone(
-            combined_vector=np.array(original_vector['values']),  # Using the original vector values
+            combined_vector=np.array(original_vector['values']),
             metadata=new_metadata,
             vector_id=new_vector_id
         )
@@ -266,7 +247,6 @@ def create_and_upload_copies(user_id, vector_id, k, top_items):
         created_vector_ids.append(new_vector_id)
 
     return created_vector_ids
-
 
 def update_user_vector_with_feedback(vector_ids, item_name, selected, liked):
     """
@@ -298,12 +278,6 @@ def update_user_vector_with_feedback(vector_ids, item_name, selected, liked):
 def get_item_name_by_vector_id(item_vector_id):
     """
     Retrieves the item name associated with a specific item vector ID.
-
-    Args:
-        item_vector_id (str): The ID of the item vector.
-
-    Returns:
-        str: The name of the item associated with the vector ID.
     """
     # Query the item vector storage (e.g., Pinecone) to fetch the vector by its ID
     item_vector_data = user_vector_manager.item_index.fetch(ids=[item_vector_id])
@@ -317,6 +291,7 @@ def get_item_name_by_vector_id(item_vector_id):
         return item_metadata.get('name', 'Unknown Item Name')
     
     return 'Item not found'
+
 
 # Example usage:
 
