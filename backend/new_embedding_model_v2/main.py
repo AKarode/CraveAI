@@ -114,27 +114,30 @@ def get_recommendations(user_id, vector_id, chat_id, k):
     # Convert the original vector to a list before querying Pinecone
     original_vector_list = original_vector.tolist()
     
-    # Fetch all user vectors for the given user_id from Pinecone
+    # Fetch all user vectors for the given user_id from Pinecone and filter based on feedback
     user_vectors = []
     query_response = user_vector_manager.index.query(
         vector=original_vector_list,
         filter={"user_id": {"$eq": user_id}},
-        top_k=1000  # Fetch up to 1000 vectors, adjust this if necessary
+        top_k=1000,  # Fetch up to 1000 vectors, adjust this if necessary
+        include_metadata=True,  # Include metadata in the response
+        include_values=True  # Include values in the response
     )
     
-    # Collect all user vectors
-    if query_response and 'matches' in query_response:
-        for match in query_response['matches']:
-            user_vectors.append(np.array(match['values']))
-    print(len(user_vectors))
+    # Collect only user vectors with valid feedback (selected != -1)
+    valid_user_vectors = []
+    for match in query_response.get('matches', []):
+        if match['metadata'].get('selected') != -1:
+            valid_user_vectors.append(np.array(match['values']))
     
-    # If there are not enough user vectors, skip neural network and use cosine similarity
-    if len(user_vectors) <= k:
-        # Use cosine similarity if there aren't enough user vectors
+    print(f"Number of valid user vectors: {len(valid_user_vectors)}")
+
+    # If there are not enough valid user vectors, use cosine similarity instead of the neural network
+    if len(valid_user_vectors) <= k:
         item_vectors = []
         item_query_response = user_vector_manager.item_index.query(
-            vector=original_vector_list,  # Use the original vector to query for similar items
-            filter={"chat_id": {"$eq": chat_id}},  # Ensure we only consider items from the current chat session
+            vector=original_vector_list,
+            filter={"chat_id": {"$eq": chat_id}},
             top_k=1000,
             include_metadata=True,
             include_values=True
@@ -150,11 +153,11 @@ def get_recommendations(user_id, vector_id, chat_id, k):
             for item_vector_values, item_name, item_id in item_vectors
         ]
     else:
-        # Use the neural network if there are enough user vectors
+        # Use the neural network if there are enough valid user vectors
         item_vectors = []
         item_query_response = user_vector_manager.item_index.query(
-            vector=original_vector_list,  # Use the original vector to query for similar items
-            filter={"chat_id": {"$eq": chat_id}},  # Ensure we only consider items from the current chat session
+            vector=original_vector_list,
+            filter={"chat_id": {"$eq": chat_id}},
             top_k=1000,
             include_metadata=True,
             include_values=True
@@ -162,21 +165,42 @@ def get_recommendations(user_id, vector_id, chat_id, k):
         
         if item_query_response and 'matches' in item_query_response:
             for match in item_query_response['matches']:
-                print(match)
                 item_vector_values = np.array(match['values'])
                 item_vectors.append((item_vector_values, match['metadata']['name'], match['id']))
         print("item_vector number", len(item_vectors))
         
         # Ensure that there are item vectors to train the neural network
         if len(item_vectors) > 0:
-            item_vector_values = [item_vector_values for item_vector_values, _, _ in item_vectors]
-            item_labels = [1] * len(item_vectors)  # Dummy labels; actual labels needed for training
+            training_user_vectors = []
+            training_item_vectors = []
+            item_labels = []
 
-            # Calculate the correct input dimension for the neural network
-            combined_vector_dim = original_vector.shape[0] + item_vector_values[0].shape[0]
-            print("Combined Vector Dimension:", combined_vector_dim)
-            # Pass the correct input dimension to the model
-            model = train_neural_network(user_vectors, item_vector_values, item_labels, epochs=10)
+            for match in query_response.get('matches', []):
+                # Check if the user vector has a valid `selected` value
+                if match['metadata'].get('selected') != -1:
+                    # Get the user vector
+                    user_vector = np.array(match['values'])
+                    training_user_vectors.append(user_vector)
+                    
+                    # Fetch the corresponding item vector from Pinecone, irrespective of chat_id
+                    item_vector_id = match['metadata'].get('item_vector_id')
+                    item_vector_response = user_vector_manager.item_index.fetch(ids=[item_vector_id])
+                    item_vector = np.array(item_vector_response['vectors'][item_vector_id]['values'])
+                    training_item_vectors.append(item_vector)
+
+                    # Determine label based on `liked` and `selected`
+                    liked = match['metadata'].get('liked')
+                    selected = match['metadata'].get('selected')
+
+                    if liked != -1:
+                        label = liked
+                    else:
+                        label = selected
+                
+                    item_labels.append(label)
+
+            # Now train the neural network with user vectors and item vectors
+            model = train_neural_network(training_user_vectors, training_item_vectors, item_labels, epochs=10)
 
             scores = []
             for item_vector_values, item_name, item_id in item_vectors:
@@ -185,16 +209,13 @@ def get_recommendations(user_id, vector_id, chat_id, k):
                 # Create a tensor of shape [778]
                 combined_tensor = torch.tensor(combined_vector, dtype=torch.float32).unsqueeze(0)  # Add batch dimension
                 
-                #separate tensor
-                # Assuming combined_vector is of size [778] (i.e., concatenation of user_vector and item_vector)
-                user_part = combined_tensor[:, :389]   # First part of the tensor
-                item_part = combined_tensor[:, 389:]   # Second part of the tensor
-
-                # Stack these parts into a tensor of shape [2, 389]
+                # Separate tensor
+                user_part = combined_tensor[:, :389]
+                item_part = combined_tensor[:, 389:]
                 stacked_tensor = torch.stack((user_part, item_part)).unsqueeze(0)
 
                 # Get the score from the model
-                output = model(stacked_tensor)
+                output = model(combined_tensor)
                 score = output.mean().item()
                 scores.append((item_name, item_id, score))
         else:
@@ -205,6 +226,9 @@ def get_recommendations(user_id, vector_id, chat_id, k):
     top_items = [item_id for _, item_id, _ in scores[:k]]
 
     return top_items
+
+
+
 
 
 
@@ -304,35 +328,55 @@ def get_item_name_by_vector_id(item_vector_id):
 
 # Example usage
 if __name__ == "__main__":
-    user_id = "user125"
+    user_id = "user128"
     
     # Initialize a new chat session
     chat_id, vector_id = initialize_chat(
-        user_text="I want something spicy and vegetarian.",
+        user_text="I want something savory and meaty",
         user_id=user_id,
         menu_data=[
-            {"name": "spicy_pasta", "description": "pasta with spicy tomato sauce", "price": "$15"},
-            {"name": "veggie_burger", "description": "burger with black bean patty", "price": "$10"}
-        ]
+    {"name": "Classic Cheeseburger", "description": "A juicy beef patty topped with melted cheddar cheese, lettuce, tomato, pickles, and onions on a toasted sesame seed bun. Served with a side of crispy fries.", "price": "$10.99"},
+    {"name": "Grilled Chicken Caesar Salad", "description": "Grilled chicken breast served over a bed of fresh romaine lettuce, tossed with creamy Caesar dressing, Parmesan cheese, and croutons.", "price": "$9.99"},
+    {"name": "Margarita Pizza", "description": "A classic pizza topped with fresh mozzarella cheese, tomatoes, basil, and a drizzle of olive oil on a crispy thin crust.", "price": "$12.49"},
+    {"name": "Vegan Buddha Bowl", "description": "A nutritious bowl filled with quinoa, roasted chickpeas, avocado, sweet potatoes, kale, and a tahini dressing.", "price": "$11.99"},
+    {"name": "Spaghetti Carbonara", "description": "Spaghetti pasta tossed in a creamy sauce made with eggs, Parmesan cheese, pancetta, and black pepper.", "price": "$13.49"},
+    {"name": "Buffalo Wings", "description": "Spicy buffalo chicken wings served with celery sticks and a side of blue cheese dipping sauce.", "price": "$8.99"},
+    {"name": "Vegetable Stir Fry", "description": "A mix of stir-fried vegetables including broccoli, bell peppers, carrots, and snap peas, tossed in a savory soy sauce. Served with steamed rice.", "price": "$10.49"},
+    {"name": "Lamb Gyro", "description": "Sliced lamb, tomatoes, onions, and tzatziki sauce wrapped in a warm pita bread.", "price": "$9.49"},
+    {"name": "Seafood Paella", "description": "A traditional Spanish dish with saffron rice, shrimp, mussels, clams, and chorizo, cooked in a rich seafood broth.", "price": "$16.99"},
+    {"name": "Beef Tacos", "description": "Soft corn tortillas filled with seasoned ground beef, topped with lettuce, cheese, salsa, and sour cream.", "price": "$7.99"},
+    {"name": "Mushroom Risotto", "description": "Creamy risotto with sautéed mushrooms, Parmesan cheese, and a hint of truffle oil.", "price": "$14.99"},
+    {"name": "BBQ Ribs", "description": "Slow-cooked pork ribs smothered in a tangy BBQ sauce, served with coleslaw and cornbread.", "price": "$18.99"},
+    {"name": "Fish and Chips", "description": "Crispy beer-battered fish fillets served with golden fries and a side of tartar sauce.", "price": "$13.99"},
+    {"name": "Eggplant Parmesan", "description": "Layers of breaded eggplant, marinara sauce, and melted mozzarella cheese, baked to perfection. Served with a side of garlic bread.", "price": "$12.99"},
+    {"name": "Chicken Alfredo Pasta", "description": "Fettuccine pasta in a rich and creamy Alfredo sauce with grilled chicken breast and fresh parsley.", "price": "$14.49"},
+    {"name": "Shrimp Scampi", "description": "Succulent shrimp sautéed in garlic, butter, and white wine, served over a bed of linguine.", "price": "$15.49"},
+    {"name": "Pancakes with Maple Syrup", "description": "Fluffy buttermilk pancakes served with a generous drizzle of maple syrup and a side of fresh berries.", "price": "$7.99"},
+    {"name": "Pepperoni Pizza", "description": "Classic pizza with a generous topping of pepperoni slices, melted mozzarella, and a rich tomato sauce on a crispy crust.", "price": "$12.49"},
+    {"name": "Greek Salad", "description": "A refreshing salad with cucumbers, tomatoes, olives, feta cheese, and red onions, tossed in a lemon-oregano dressing.", "price": "$8.49"},
+    {"name": "Chocolate Lava Cake", "description": "A warm, gooey chocolate cake with a molten center, served with a scoop of vanilla ice cream.", "price": "$6.99"}
+]
     )
     sleep(1)
     # Later, update the user vector in the ongoing chat session
     update_user_vector(
-        user_text="I don't like too much sweetness.",
+        user_text="I want something creamy",
         vector_id=vector_id
     )
 
     # Get recommendations
     top_items = get_recommendations(user_id=user_id, vector_id=vector_id, chat_id=chat_id, k=3)
     print("top item :", top_items[0])
-    topitem = top_items[0]
-
-    item_name = get_item_name_by_vector_id(topitem)
-    print(item_name)
+    topitem = top_items
+    itemnames = []
+    for item in topitem:
+        item_name = get_item_name_by_vector_id(item)
+        print(item_name)
+        itemnames.append(item_name)
     # Create and upload copies
     new_vector_ids = create_and_upload_copies(user_id=user_id, vector_id=vector_id, k=3, top_items=top_items)
     sleep(2)
     # Example of updating the recommendation with feedback
-    update_user_vector_with_feedback(vector_ids=new_vector_ids, item_name="spicy_pasta", selected=1, liked=1)
+    update_user_vector_with_feedback(vector_ids=new_vector_ids, item_name=itemnames[0], selected=1, liked=1)
 
 

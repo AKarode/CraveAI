@@ -23,7 +23,7 @@ class CustomNeuralNetwork(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        print(f"Shape of x: {x.shape}")
+        #print(f"Shape of x: {x.shape}")
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.relu(self.fc3(x))
@@ -49,7 +49,9 @@ class UserItemDataset(Dataset):
 
 # Function to train the neural network
 def train_neural_network(user_vectors, item_vectors, labels, epochs=10, lr=0.001, batch_size=32):
+    print("USER VECTOR SIZE : ", len(user_vectors), "ITEM VECTOR SIZE : ", len(item_vectors), "LABLE SIZE : ", len(labels))
     input_dim = len(user_vectors[0]) + len(item_vectors[0])  # Expecting the input dimension to be 778
+    print("INPUT DIM :", input_dim)
     dataset = UserItemDataset(user_vectors, item_vectors, labels)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
