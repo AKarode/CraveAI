@@ -1,9 +1,20 @@
 from flask import Flask, request, jsonify
-import requests
 from bs4 import BeautifulSoup
+import requests
+import openai
+import os
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+# Initialize Flask app
 app = Flask(__name__)
 
+# Configure OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Route for receiving menu data from a URL
 @app.route('/endpoint', methods=['POST'])
 def receive_data():
     if request.is_json:
@@ -87,5 +98,36 @@ def receive_data():
     else:
         return jsonify({'valid': False, 'error': 'Unsupported Content-Type'}), 400
 
+# Route for processing menu text using OpenAI GPT-4o
+@app.route('/process_menu', methods=['POST'])
+def process_menu():
+    try:
+        data = request.json
+        print('Received data:', data)  # Log received data for debugging
+        query_list = find_top_matching_items('user_124', data['text'], top_k=5)
+        input_text = 'this is the most similar items from that query:' + query_list[0][0] + query_list[1][0] + query_list[2][0] + 'pick the best item from in them and make a concise and to the point recommendation to the user'
+
+        messages = [
+            {"role": "user", "content": data['text']},
+            {"role": "system", "content": input_text},
+        ]
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=messages,
+            max_tokens=400,
+        )
+
+
+        menu_text = response.choices[0].message.content
+        lines = menu_text.split('\n')
+
+        return jsonify({"reply": lines})
+
+    except Exception as exception:
+        print('Error processing menu:', exception)
+        return jsonify({"error": str(exception)}), 500
+
+# Run the Flask app with both routes under different ports
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
