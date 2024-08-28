@@ -7,7 +7,7 @@ export default function LoadingScreen() {
     <View style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.image}>
         <Text style={styles.text}>CraveAI</Text>
-        <ActivityIndicator size="large" color="#ffffff" style={styles.spinner} />
+        <ActivityIndicator size="large" color="maroon" style={styles.spinner} />
       </ImageBackground>
     </View>
   );
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'maroon',
     marginBottom: 20, // Add some space between the text and the spinner
   },
   spinner: {

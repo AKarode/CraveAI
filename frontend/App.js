@@ -2,19 +2,17 @@ import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ImageBackground, StyleSheet } from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
+import { auth } from './firebaseConfig'; // Import the Firebase auth
 
+// Import screens and navigators
 import LoadingScreen from "./screens/LoadingScreen";
 import SurveyScreen from "./screens/SurveyScreen";
-import HomeScreen from "./screens/HomeScreen";
 import WelcomePage from "./screens/WelcomePage";
-import ChatScreen from "./screens/ChatScreen";
-import ScanScreen from "./screens/ScanScreen";
 import LoginScreen from "./screens/LoginScreen";
-import AccountScreen from './screens/AccountScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
-import { auth } from './firebaseConfig'; // Import the Firebase auth
+
+import BottomTabsNavigator from './screens/BottomTabsNavigator'; // Import bottom tab navigator
 
 const Stack = createNativeStackNavigator();
 
@@ -47,15 +45,12 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Check if user is new
         try {
           const userData = await AsyncStorage.getItem(`user-${user.uid}`);
           if (userData === null) {
-            // User is new
             await AsyncStorage.setItem(`user-${user.uid}`, "exists");
             setIsNewUser(true);
           } else {
-            // Existing user
             setIsNewUser(false);
           }
         } catch (error) {
@@ -77,36 +72,20 @@ export default function App() {
   }
 
   return (
-    <ImageBackground
-      source={require("./assets/background.png")}
-      style={styles.backgroundImage}
-    >
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName={user ? (isNewUser ? "WelcomePage" : "HomeScreen") : "LoginScreen"}
-          screenOptions={{
-            headerShown: false,
-            animation: "none",
-          }}
-        >
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen name="WelcomePage" component={WelcomePage} />
-          <Stack.Screen name="SurveyScreen" component={SurveyScreen} />
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          <Stack.Screen name="ChatScreen" component={ChatScreen} />
-          <Stack.Screen name="ScanScreen" component={ScanScreen} />
-          <Stack.Screen name="AccountScreen" component={AccountScreen} />
-          <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ImageBackground>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={user ? (isNewUser ? "WelcomePage" : "BottomTabsNavigator") : "LoginScreen"}
+        screenOptions={{
+          headerShown: false,
+          animation: "none",
+        }}
+      >
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="WelcomePage" component={WelcomePage} />
+        <Stack.Screen name="SurveyScreen" component={SurveyScreen} />
+        <Stack.Screen name="BottomTabsNavigator" component={BottomTabsNavigator} />
+        <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: "cover",
-    justifyContent: "center",
-  },
-});

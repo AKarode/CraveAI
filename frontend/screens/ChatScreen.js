@@ -50,10 +50,7 @@ export default function ChatScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.image}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={36} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.text}>Chat Screen</Text>
+        <Text style={styles.text}>CraveAI ChatBot</Text>
 
         <ScrollView
           style={styles.chatContainer}
@@ -110,7 +107,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'maroon',
     marginBottom: 20,
     marginTop: 80,
   },
@@ -128,11 +125,11 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#2979FF',
+    backgroundColor: 'maroon',
   },
   botBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FF7043',
+    backgroundColor: 'grey',
   },
   messageText: {
     color: 'white',
@@ -143,18 +140,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     marginBottom: 10, // Adjust this value to move the input box higher
-    height: 60, // Increased height for the input container
-  },
+    height: 60, 
+  } ,
+  
   input: {
     flex: 1,
     backgroundColor: 'white',
     borderRadius: 20,
     paddingHorizontal: 15,
     marginRight: 10,
-    height: '100%', // Make the input fill the height of the container
+    height: '100%',
+    borderColor: 'maroon', // Maroon color for the border
+    borderWidth: 2, // Adjust the border width as needed
+    borderRadius: 20 // Make the input fill the height of the container
   },
   sendButton: {
-    backgroundColor: '#2979FF',
+    backgroundColor: 'maroon',
     borderRadius: 20,
     padding: 10,
     height: '100%', // Make the button fill the height of the container

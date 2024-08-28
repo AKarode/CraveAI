@@ -11,7 +11,7 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.replace("HomeScreen");
+      navigation.replace("BottomTabsNavigator");
     } catch (error) {
       setError(error.message);
     }

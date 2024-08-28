@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { RadioButton } from 'react-native-paper';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc} from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig'; // Import Firestore and auth
 import backgroundImage from '../assets/background.png';
 
@@ -25,7 +25,7 @@ export default function SurveyScreen({ navigation }) {
   });
 
   const handleNavigate = () => {
-    navigation.replace('HomeScreen');
+    navigation.replace('BottomTabsNavigator'); // Navigate to the BottomTabsNavigator
   };
 
   const handleAnswerChange = (question, answer) => {
@@ -38,27 +38,34 @@ export default function SurveyScreen({ navigation }) {
   const handleSubmit = async () => {
     try {
       const userId = auth.currentUser.uid;
-      const docRef = doc(db, 'surveyResponses', userId);
-
-      // Save the survey data as a JSON object
-      await setDoc(docRef, {
-        ...answers,
-        timestamp: new Date()
+      const surveyDocId = `surveydata_${userId}`;
+      const surveyDocRef = doc(db, 'users', userId, 'surveys', surveyDocId);
+  
+      // Save the survey data with the specified document ID
+      await setDoc(surveyDocRef, {
+        responses: {
+          ...answers,
+          timestamp: new Date()
+        }
       });
-
+  
       // Log the survey data to the console
       console.log("Survey data saved:", {
         userId,
-        ...answers,
-        timestamp: new Date()
+        responses: {
+          ...answers,
+          timestamp: new Date()
+        }
       });
-
+  
       // Navigate to the home screen or show a success message
       handleNavigate();
     } catch (error) {
       console.error("Error saving survey data:", error);
     }
   };
+  
+  
 
   const renderQuestion = (question, questionText, options) => (
     <View style={styles.questionContainer} key={question}>
@@ -163,7 +170,7 @@ export default function SurveyScreen({ navigation }) {
         <Button
           title="Complete Survey"
           onPress={handleSubmit}
-          color="#ffffff"
+          color="maroon"
         />
       </ScrollView>
     </ImageBackground>
@@ -185,8 +192,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginTop: 40,
+    color: 'maroon',
+    marginTop: 50,
     marginBottom: 50,
   },
   questionContainer: {
@@ -197,7 +204,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'maroon',
     marginTop: 20,
     textAlign: 'center',
     marginBottom: 25,
@@ -211,20 +218,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: "#000000",
+    backgroundColor: "white",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
     width: '80%', // Adjust width to make all buttons the same size
     justifyContent: 'space-between',
+    borderColor: 'maroon', // Maroon color for the border
+    borderWidth: 2, // Adjust the border width as needed
+    borderRadius: 20 // Make the input fill the height of the container
   },
   radioButtonSelected: {
-    backgroundColor: '#9966CB',
+    backgroundColor: 'maroon',
   },
   radioText: {
-    color: '#ffffff',
+    color: 'black',
     marginLeft: 8,
     flex: 1,
     textAlign: 'center',
+    fontWeight: 'bold'
   },
 });

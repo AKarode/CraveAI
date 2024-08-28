@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Button,
   TouchableOpacity,
   Alert
 } from 'react-native';
-import { auth } from '../firebaseConfig';
+
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 export default function AccountScreen() {
   const navigation = useNavigation();
@@ -19,6 +19,16 @@ export default function AccountScreen() {
     const unsubscribe = auth.onAuthStateChanged(setUser);
     return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigation.navigate("LoginScreen");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      Alert.alert("Error", "Failed to sign out. Please try again.");
+    }
+  };
 
   if (!user) {
     return (
@@ -30,9 +40,6 @@ export default function AccountScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('HomeScreen')}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
       <Text style={styles.title}>Account Information</Text>
       <Text style={styles.label}>Email:</Text>
       <Text style={styles.info}>{user.email}</Text>
@@ -40,10 +47,16 @@ export default function AccountScreen() {
       <Text style={styles.info}>{user.uid}</Text>
       <Text style={styles.label}>Account Created:</Text>
       <Text style={styles.info}>{user.metadata.creationTime}</Text>
-      <Button
-        title="Reset Password"
-        onPress={() => navigation.navigate('ResetPasswordScreen')}
-      />
+      
+      {/* Logout Button */}
+      <TouchableOpacity onPress={handleLogout}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+
+      {/* Navigate to Reset Password Screen */}
+      <TouchableOpacity onPress={() => navigation.navigate('ResetPasswordScreen')}>
+        <Text style={styles.resetPasswordText}>Reset Password</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -58,6 +71,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
   },
   label: {
     fontSize: 18,
@@ -67,13 +81,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 15,
   },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    backgroundColor: '#ff7e5f',
-    padding: 10,
-    borderRadius: 30,
-    zIndex: 1,
+  logoutText: {
+    fontSize: 18,
+    color: 'maroon',
+    marginTop: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  resetPasswordText: {
+    fontSize: 18,
+    color: 'maroon',
+    marginTop: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
