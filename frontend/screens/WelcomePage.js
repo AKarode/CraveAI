@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, FlatList, Dimensions, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+
 const WelcomePage = () => {
   const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -55,7 +56,7 @@ const WelcomePage = () => {
         <Button
           title="Start Survey"
           onPress={handleNavigate}
-          color="#ffffff" // Button text color
+          color="maroon" // Button text color
         />
       </View>
     </ImageBackground>
@@ -75,13 +76,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 55,
     fontFamily: 'Lexend',
-    color: '#ffffff', // Text color
+    color: 'black', // Text color
   },
   subtitle: {
     marginTop: 20,
     fontSize: 44,
     fontFamily: 'Lexend',
-    color: '#ffffff', // Text color
+    color: 'black', // Text color
   },
   image: {
     flex: 1,
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     fontFamily: 'Lexend',
-    color: '#ffffff', // Text color
+    color: 'black', // Text color
   },
   pagination: {
     flexDirection: 'row',
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
     marginBottom: 50, // Adjusted margin to position the dots right under the info
-    backgroundColor: '#ffffff', // Dot color
+    backgroundColor: 'black', // Dot color
   },
   buttonContainer: {
     marginBottom: 50, // Adjusted margin to raise the button higher

@@ -21,7 +21,7 @@ export default function ResetPasswordScreen() {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>Back</Text>
+        <Text style={styles.backButtonText}>Finish</Text>
       </TouchableOpacity>
       <Text style={styles.title}>Reset Password</Text>
       <TextInput
@@ -32,7 +32,7 @@ export default function ResetPasswordScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <Button title="Send Reset Email" onPress={handleResetPassword} />
+      <Button title="Send Reset Email" onPress={handleResetPassword} color="maroon" />
     </View>
   );
 }
@@ -57,14 +57,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 30,
-    left: 20,
+    top: 55,
+    left: 30,
     padding: 10,
-    backgroundColor: '#ff7e5f',
-    borderRadius: 5,
+    backgroundColor: 'maroon',
+    borderRadius: 20,
   },
   backButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
   },
 });
