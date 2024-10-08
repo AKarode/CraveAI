@@ -34,7 +34,7 @@ SEMANTIC_VECTOR_DIM = 384
 class FeatureExtractor:
     def __init__(self):
         # Initialize the SentenceTransformer model for semantic analysis
-        self.text_model = SentenceTransformer('all-MiniLM-L12-v2')
+        self.text_model = SentenceTransformer('fine_tuned_model')
         # Load spaCy model for Named Entity Recognition (NER) and text processing
         self.nlp = spacy.load("en_core_web_sm")
 
