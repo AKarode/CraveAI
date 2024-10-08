@@ -307,7 +307,7 @@ if __name__ == "__main__":
     
     # Initialize a new chat session
     chat_id, vector_id = initialize_chat(
-        user_text="Reccomend me something that is not vegetarian and savory, it also should not contain mushrooms.",
+        user_text="Reccomend me something that is vegetarian and savory and something spicy.",
         user_id=user_id,
         menu_data=[
     {"name": "Classic Cheeseburger", "description": "A juicy beef patty topped with melted cheddar cheese, lettuce, tomato, pickles, and onions on a toasted sesame seed bun. Served with a side of crispy fries.", "price": "$10.99"},
@@ -334,11 +334,12 @@ if __name__ == "__main__":
     )
     sleep(1)
     # Later, update the user vector in the ongoing chat session
+    
     update_user_vector(
         user_text="I want something spicy",
         vector_id=vector_id
     )
-
+    
     # Get recommendations
     top_items = get_recommendations(user_id=user_id, vector_id=vector_id, chat_id=chat_id, k=3)
     print("top item :", top_items[0])
