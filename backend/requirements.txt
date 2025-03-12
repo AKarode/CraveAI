@@ -1,0 +1,12 @@
+openai>=1.0.0
+fastapi>=0.104.0
+uvicorn>=0.23.2
+pinecone>=2.2.1
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+pillow>=10.0.0
+pdf2image>=1.16.3
+pytesseract>=0.3.10
+pydantic>=2.4.2
+langchain>=0.0.300
+requests>=2.31.0 
