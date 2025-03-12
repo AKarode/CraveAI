@@ -146,10 +146,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Team
 
-- John Doe - Frontend Developer
-- Jane Smith - Backend Developer
-- Alex Johnson - AI Engineer
-- Sarah Williams - UI/UX Designer
+- Adit Karode - Lead Developer and Founder
+- Anish - Frontend Developer 
+- Mukhul - Frontend Developer 
+- Rushil - Machine Learning Engineer 
+- Saahith - Machine Learning Engineer 
 
 ## 🙏 Acknowledgements
 
