@@ -9,4 +9,10 @@ pdf2image>=1.16.3
 pytesseract>=0.3.10
 pydantic>=2.4.2
 langchain>=0.0.300
-requests>=2.31.0 
+requests>=2.31.0
+torch
+transformers
+scikit-learn
+nlpaug
+numpy
+nltk 
