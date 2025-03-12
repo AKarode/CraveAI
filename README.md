@@ -150,7 +150,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Anish - Frontend Developer 
 - Mukhul - Frontend Developer 
 - Rushil - Machine Learning Engineer 
-- Saahith - Machine Learning Engineer 
+- Saahith - Machine Learning Engineer
+- Aditya - Data Engineer
 
 ## 🙏 Acknowledgements
 
