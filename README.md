@@ -1,46 +1,158 @@
-# gmg-food-assistant
-(Tech Stacks Used)
-- ReactJS
-- PineconeDB
-- OpenAI API
-- Python
+# CraveAI
 
-# Problem Statement
-In the modern dining experience, restaurants often struggle to make their menus easily accessible and personalized for their customers. With menus frequently presented in PDF or image formats, customers need help navigating through various options and making informed decisions quickly, especially when faced with language barriers or unfamiliar dishes. Restaurants also lack a systematic way to gather and use customer feedback on specific dishes, missing out on valuable data to improve their offerings.
+<p align="center">
+  <img src="frontend/public/logo.png" alt="CraveAI Logo" width="200"/>
+</p>
 
-# Solution Using AI
-GMG Food Assistant leverages AI to revolutionize how restaurants manage and present their menus. By using OCR (Optical Character Recognition) and Natural Language Processing (NLP), the system automatically extracts menu items from PDFs or images, making the data more accessible and usable. With the integration of PineconeDB for Retrieval-Augmented Generation (RAG), the AI intelligently matches menu items to user preferences, providing personalized and contextually relevant dish recommendations. Additionally, the system bridges language gaps by supporting Indic language translation, allowing restaurants to cater to a wider audience. Through AI-powered recommendations and a feedback loop, GMG Food Assistant helps restaurants refine their menu offerings and enhances the overall dining experience by making it more personalized, seamless, and data-driven.
+CraveAI is an intelligent food assistant that revolutionizes the restaurant menu experience by using AI to extract menu items, provide personalized recommendations, and bridge language barriers.
 
+## ✨ Features
 
+- **Menu Extraction**: Automatically extracts menu items from PDF or image files using OCR
+- **Personalized Recommendations**: Uses AI to provide contextually relevant dish recommendations
+- **Multilingual Support**: Supports translation for Indic languages
+- **User Feedback Collection**: Gathers and analyzes user feedback to improve recommendations
+- **Restaurant Dashboard**: Helps restaurants manage menus and understand customer preferences
 
-## Version-1
-- Restaurant uploads menu
-- Our model _extracts_ menu items from pdf/png. (Use OCR to scan for characters, if language is Indic we can try use translators).
-- Create relational database based off menu items and have it relate items to food that it is trained on (Pinecone DB to use for RAG context usage)
-- Fine tune model to make sure exclusively give items from menus provided.
+## 🛠️ Tech Stack
 
-## Model Installation 
+### Frontend
+- **Framework**: Next.js 15.x (React 19)
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn/UI
+- **PDF Processing**: React-PDF
+- **Image Processing**: Tesseract.js
+- **State Management**: Zustand
+
+### Backend
+- **Framework**: FastAPI
+- **AI/ML**: OpenAI API
+- **Vector Database**: PineconeDB (for RAG)
+- **OCR**: Tesseract/OCR Services
+- **Containerization**: Docker
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- Python 3.10+
+- Docker and Docker Compose (optional, for backend)
+- OpenAI API key
+- PineconeDB API key
+
+### Backend Setup
+
+**Option 1: Using Docker (recommended)**
 ```bash
-git clone
-```
-```bash
-pip install openai
+# Navigate to the backend directory
+cd backend
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Build and run with Docker Compose
+docker-compose up
 ```
 
-## Frontend Installation
+**Option 2: Manual Setup**
 ```bash
-git clone
-```
-```bash
-npm install --legacy-peer-deps
-```
-```bash
-npm run ios
+# Navigate to the backend directory
+cd backend
+
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Start the FastAPI server
+uvicorn app:app --reload
 ```
 
-## Contribution Rules
-- Any edits made should be on new branch, main is left untouched until someone else tests it.
+The backend API will be available at http://localhost:8000
 
-## Features to Add
-- After items are recommended to user, user selects item they pick. This will be stored as a 1 in backend if the item is picked, 0 if the item wasn't picked, or NA if this data is unavaliable.
-- After, maybe about 30 minutes, notification sent to user on whether they enjoyed the item they picked. This will also be stored as a 1 in backend if the user did enjoy the item, 0 if they said they didn't and NA if the data is unavaliable
+### Frontend Setup
+
+```bash
+# Navigate to the frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The frontend will be available at http://localhost:3000
+
+## 📖 Usage
+
+### Uploading a Menu
+1. Log in to your restaurant account
+2. Navigate to the "Menu Management" section
+3. Click "Upload Menu" and select a PDF or image file
+4. The system will automatically extract menu items
+5. Review and edit extracted items if needed, then save
+
+### User Experience
+1. Browse restaurant listings
+2. Select a restaurant to view its menu
+3. Use the AI assistant to get personalized recommendations
+4. Select dishes and provide feedback on your experience
+
+## 🔄 How It Works
+
+1. **Menu Extraction**: When a restaurant uploads a menu, our OCR service extracts text from the document. For non-English menus, translation services convert the text to English.
+
+2. **Vector Database**: Extracted menu items are processed and stored in PineconeDB, creating embeddings that capture the semantic meaning of each dish.
+
+3. **Recommendation Engine**: When users interact with the system, their preferences and queries are matched against the menu embeddings to provide personalized recommendations.
+
+4. **Feedback Loop**: User selections and satisfaction ratings are collected to continuously improve the recommendation algorithm.
+
+## 📚 API Documentation
+
+The backend API documentation is available at http://localhost:8000/docs when the backend is running.
+
+Key endpoints include:
+- `/upload-menu`: Upload and process restaurant menus
+- `/recommendations`: Get personalized dish recommendations
+- `/feedback`: Submit user feedback on recommendations
+
+## 🤝 Contributing
+
+We welcome contributions to CraveAI! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+Please make sure to update tests as appropriate and adhere to the existing coding style.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👥 Team
+
+- John Doe - Frontend Developer
+- Jane Smith - Backend Developer
+- Alex Johnson - AI Engineer
+- Sarah Williams - UI/UX Designer
+
+## 🙏 Acknowledgements
+
+- [OpenAI](https://openai.com) for their powerful API
+- [PineconeDB](https://www.pinecone.io) for vector search capabilities
+- [Tesseract.js](https://tesseract.projectnaptha.com) for OCR functionality
