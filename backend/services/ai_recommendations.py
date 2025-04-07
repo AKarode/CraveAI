@@ -2,6 +2,7 @@ import os
 from typing import List, Dict, Any, Optional
 import openai
 import pinecone
+import numpy as np
 
 
 class RecommendationService:
@@ -52,7 +53,8 @@ class RecommendationService:
         """
         if not self.openai_client:
             # Return a dummy embedding if OpenAI client isn't available
-            return [0.0] * 1536  # Standard size for OpenAI embeddings
+            print("Using random embedding (OpenAI client not available)")
+            return list(np.random.normal(0, 0.1, 1536))  # Standard size for OpenAI embeddings
             
         try:
             response = self.openai_client.embeddings.create(
@@ -62,7 +64,8 @@ class RecommendationService:
             return response.data[0].embedding
         except Exception as e:
             print(f"Error generating embeddings: {e}")
-            return [0.0] * 1536
+            # Return a random embedding in case of error
+            return list(np.random.normal(0, 0.1, 1536))
     
     def store_menu_items(self, menu_items: List[Dict[str, Any]], menu_id: str) -> None:
         """

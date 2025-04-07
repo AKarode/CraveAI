@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, BackgroundTasks, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import os
 import uuid
 import uvicorn
@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 # Import our services
 from services.ocr import OCRService
 from services.ai_recommendations import RecommendationService
+from services.graph_rag import GraphRAGService
 
 # Load environment variables
 load_dotenv()
@@ -28,6 +29,7 @@ app.add_middleware(
 # Initialize services
 ocr_service = OCRService()
 recommendation_service = RecommendationService()
+graph_rag_service = GraphRAGService()  # New GraphRAG service
 
 # Define request/response models
 class MenuProcessingResponse(BaseModel):
@@ -43,13 +45,31 @@ class PreferenceRequest(BaseModel):
 class RecommendationResponse(BaseModel):
     recommendations: List[dict]
 
+class GraphRAGRequest(BaseModel):
+    query: str
+    constraints: Optional[Dict[str, Any]] = None
+
+class GraphRAGResponse(BaseModel):
+    success: bool
+    message: str
+    recommendations: List[dict]
+
+class QuestionRequest(BaseModel):
+    question: str
+
+class QuestionResponse(BaseModel):
+    success: bool
+    message: str
+    answer: str
+    source_items: Optional[List[dict]] = None
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "crave-ai-backend"}
 
 # Menu processing endpoint
-@app.post("/api/process-menu", response_model=MenuProcessingResponse)
+@app.post("/api/process-menu", response_model=MenuProcessingResponse, status_code=200)
 async def process_menu(
     file: UploadFile = File(...),
     background_tasks: BackgroundTasks = None
@@ -57,12 +77,15 @@ async def process_menu(
     """
     Process an uploaded menu file (PDF or image)
     """
+    # Validate file extension
+    file_extension = file.filename.split(".")[-1].lower()
+    if file_extension not in ["pdf", "png", "jpg", "jpeg"]:
+        raise HTTPException(
+            status_code=400, 
+            detail="Unsupported file format"
+        )
+    
     try:
-        # Validate file extension
-        file_extension = file.filename.split(".")[-1].lower()
-        if file_extension not in ["pdf", "png", "jpg", "jpeg"]:
-            raise HTTPException(status_code=400, detail="Unsupported file format")
-        
         # Generate menu ID
         menu_id = str(uuid.uuid4())
         
@@ -117,6 +140,41 @@ async def get_recommendations(
         )
         
         return {"recommendations": recommendations}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New GraphRAG recommendation endpoint
+@app.post("/api/graph-recommendations", response_model=GraphRAGResponse)
+async def get_graph_recommendations(request: GraphRAGRequest):
+    """
+    Get enhanced food recommendations using the knowledge graph and LLM reasoning
+    """
+    try:
+        if not graph_rag_service.knowledge_graph:
+            return {
+                "success": False,
+                "message": "Knowledge graph not loaded. Please run the data processing script first.",
+                "recommendations": []
+            }
+            
+        result = graph_rag_service.generate_recommendations(
+            query=request.query,
+            constraints=request.constraints
+        )
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New food question answering endpoint
+@app.post("/api/food-question", response_model=QuestionResponse)
+async def answer_food_question(request: QuestionRequest):
+    """
+    Answer food-related questions using the knowledge graph and LLM
+    """
+    try:
+        result = graph_rag_service.answer_food_question(question=request.question)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

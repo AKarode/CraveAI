@@ -16,3 +16,9 @@ scikit-learn
 nlpaug
 numpy
 nltk 
+# New dependencies for Uber Eats dataset processing
+pandas>=2.0.0
+kaggle>=1.5.16
+pyarrow>=14.0.0
+neo4j>=5.14.0  # Optional: If you want to use Neo4j for knowledge graph
+spacy>=3.7.2 

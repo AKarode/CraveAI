@@ -1,10 +1,114 @@
 # CraveAI
 
-<p align="center">
-  <img src="frontend/public/logo.png" alt="CraveAI Logo" width="200"/>
-</p>
+A personalized food recommendation system powered by AI and knowledge graphs.
 
-CraveAI is an intelligent food assistant that revolutionizes the restaurant menu experience by using AI to extract menu items, provide personalized recommendations, and bridge language barriers.
+## Project Structure
+
+```
+craveai/
+├── backend/                 # Backend Flask application
+│   ├── data/               # Data directory
+│   │   ├── raw/           # Raw data files (not in git)
+│   │   └── processed/     # Processed data files (not in git)
+│   ├── services/          # Core services
+│   │   ├── datasets/      # Dataset loaders and processors
+│   │   └── recommender/   # Recommendation engine
+│   ├── scripts/           # Utility scripts
+│   ├── tests/             # Test files
+│   ├── app.py             # Main Flask application
+│   ├── requirements.txt   # Production dependencies
+│   └── requirements-dev.txt # Development dependencies
+├── frontend/              # Frontend React application
+└── README.md             # This file
+```
+
+## Setup Instructions
+
+### Backend Setup
+
+1. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   cd backend
+   pip install -r requirements.txt  # For production
+   pip install -r requirements-dev.txt  # For development
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. Download the dataset:
+   - Place the Uber Eats dataset files in `backend/data/raw/`
+   - Required files: `restaurants.csv` and `restaurant-menus.csv`
+
+5. Process the dataset:
+   ```bash
+   python scripts/test_process_dataset.py
+   ```
+
+### Frontend Setup
+
+1. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. Start the development server:
+   ```bash
+   npm start
+   ```
+
+## Development
+
+### Running Tests
+
+```bash
+cd backend
+pytest
+```
+
+### Running the Application
+
+1. Start the backend server:
+   ```bash
+   cd backend
+   python app.py
+   ```
+
+2. Start the frontend development server:
+   ```bash
+   cd frontend
+   npm start
+   ```
+
+## Docker Deployment
+
+Build and run with Docker:
+
+```bash
+docker-compose up --build
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## ✨ Features
 
