@@ -45,14 +45,14 @@ class ModelComparisonTestCase(unittest.TestCase):
         self.openai_client = None
         
         # If the API key from env doesn't start with "sk-proj-", use the hardcoded value
-        if not openai_api_key or not openai_api_key.startswith("sk-proj-"):
-            # Use the same key as in test_openai.py
-            openai_api_key = "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"
-            
+        if not openai_api_key or not openai_api_key.startswith("sk-"):
+            # Use a placeholder - DO NOT hardcode real API keys
+            openai_api_key = "your_openai_api_key_here" 
+        
         if openai_api_key and openai_api_key != "your_openai_api_key_here":
             try:
                 self.openai_client = openai.OpenAI(api_key=openai_api_key)
-                print(f"Using OpenAI API with key starting with: {openai_api_key[:12]}...")
+                print(f"Using OpenAI API with key starting with: {openai_api_key[:8]}...")
             except Exception as e:
                 print(f"Warning: Failed to initialize OpenAI client: {e}")
         
